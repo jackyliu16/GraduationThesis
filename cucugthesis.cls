@@ -110,35 +110,34 @@
   \zihao{-4}\ignorespaces
 }{\clearpage}
 
+% \renewenvironment{disclaim}{
+%   \clearpage\phantomsection
+%   \begin{center}
+%     \vspace*{-10pt}
+%     \zihao{3}\heiti{学术诚信声明}
+
+%     \vspace{8pt}
+%   \end{center}
+
+%   \addcontentsline{toc}{section}{学术诚信声明}
+%   \zihao{-4}\ignorespaces
+% }{\clearpage}
+
 \newcommand{\keywords}[1]{\newline\newline\newline\noindent\heiti{关键词：}\heiti #1}
-
-\newcommand{\maketitleEN}{
-  \zihao{-2}\textbf{\heiti\thesisTitleEN}
-  \vspace{2\ccwd}
-
-  \zihao{4}\yourNameEN
-  \vspace{1.5\ccwd}
-}
-
-\RequirePackage{setspace,titlesec,zhnumber,titletoc}
 
 % 英文摘要命令
 \newenvironment{abstractEN}{
   \clearpage\phantomsection
   \begin{center}
-    \vspace*{-24pt}
-    \maketitleEN    % Extra command
-
+    \vspace*{-10pt}
     \zihao{3}\textbf{\heiti{ABSTRACT}}
     
     \vspace{8pt}
   \end{center}
 
   \addcontentsline{toc}{section}{ABSTRACT}
-
-  \begin{spacing}{1.8}
   \zihao{4}\ignorespaces
-}{\end{spacing}}
+}{\clearpage}
 
 \newcommand{\keywordsEN}[1]{\newline\newline\newline\noindent{Keywords: }#1}
 
