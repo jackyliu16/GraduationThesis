@@ -152,15 +152,17 @@
 
 %%%%%%%%%%%%%%%%%%%%%% 章节标题样式 %%%%%%%%%%%%%%%%%%%%%%
 
+\RequirePackage{setspace,titlesec,zhnumber,titletoc}
+
 \renewcommand{\thesection}{\zhnum{section}}
 \renewcommand{\thesubsection}{\zhnum{subsection}}
 \renewcommand{\thesubsubsection}{\arabic{subsubsection}}
 
 \newcommand{\sectionbreak}{\clearpage}
-%\titleformat{\section}[block]{\vspace*{-5pt} \centering \zihao{3} \heiti}
-%{\thesection、}{0pt}{\vspace{8pt}}
+\titleformat{\section}[block]{\vspace*{-10pt} \centering \zihao{3} \heiti}
+{\thesection、}{0pt}{\vspace{8pt}}
 
-\titleformat{\subsection}{\vspace*{-5pt} \zihao{4} \heiti}
+\titleformat{\subsection}{\zihao{4} \heiti}
 {（\thesubsection）}{0pt}{}
 
 \titleformat{\subsubsection}{\zihao{-4} \heiti}
