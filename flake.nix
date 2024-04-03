@@ -29,26 +29,17 @@
         inherit texPackages;
         inputFile = "main.tex";
 
-        buildPhase = "xelatex main.tex";
         fonts = [
           "${./fonts}"
         ];
 
-        installPhase = ''
-          mv $out ./result
+        # TODO:  impure
+        buildPhase = ''
+          xelatex main.tex cucugthesis.cls
         '';
-        # NOTE: you may use you own version of buildPhase, installPhase, stdenv, texPackage
-        # buildPhase = ''
-        # export PATH="${pkgs.lib.makeBinPath nativeBuildInputs}";
-        # mkdir -p .cache/texmf-var
-        # cd ${workingDirectory}
-        # echo $PWD
-        # ls $PWD
-        # env TEXMFHOME=.cache TEXMFVAR=.cache/texmf-var \
-        #   latexmk -f -interaction=nonstopmode -pdf -lualatex -bibtex \
-        #   -jobname=output \
-        #   ${inputFile}
-        # '';
+        installPhase = ''
+          mv main.pdf $out 
+        '';
       };
     });
 }
