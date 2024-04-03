@@ -39,7 +39,7 @@
 
 % 1.25倍行距
 % https://github.com/TheNetAdmin/zjuthesis/issues/125
-\linespread{1.354}\selectfont
+\linespread{1.25}
 
 % 段落缩进2字符
 \setlength\parindent{2\ccwd}
