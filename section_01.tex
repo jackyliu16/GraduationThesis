@@ -1,0 +1,132 @@
+\section{引言} % 一级标题，可以用自己的章节标题去替换
+
+\subsection{{\LaTeX}简介}  % 二级标题，可以用自己的章节标题去替换
+{\LaTeX}是一种文字排版系统，是基于{\TeX}排版系统并由此发展而来。
+与其他文字处理系统相比，{\LaTeX}具有非常明显的优势和弱点，其{\bf 最突出的优势就是高质量、高专业水准的文稿排版效果}；
+而它{\bf 最大的弱点就是使用可视程度低，致使很多人敬而远之}\cite{bib:1}。
+% 引用参考文献时使用\cite{参考文献的标签}
+
+当你无法在Microsoft Word和{\LaTeX}排版系统之间做出选择时，可以利用表\ref{tab:1} % 引用图时使用\ref{表的标签} 
+提供的内容进行二者之间的特征对比。
+
+% \begin{table}[ht]  % h和t这两个参数的意思是将表放在当前位置或某页的上方
+%     \centering
+% 		\caption{Microsoft Word和Latex的主要特征对比}
+%     \begin{tabular*}{15cm}{lll}
+%     \toprule  
+%           特征	&   Microsoft Word	     &  Latex       \\   \midrule  % 表头
+%  撰写的文档篇幅 & 迅速看到编辑的结果。   & 通过构建过程才能看到输出。     \\  %第一行
+%       易于使用  & 基本功能便于掌握。     & 需要花费一些时间来掌握命令。  \\  % 第二行
+% 			排版质量  & 远没有达到专业级别。 &	提供专业级别的排版效果。               \\  % 第三行
+% 			科学特性	& 对参考文献的引用支持较弱。& 参考文献由BibTeX管理。\\  % 第四行
+% 			价格	& 需要支付费用。	           &  免费使用Latex。\\  % 第五行
+% 			兼容性 & 存在兼容性问题。 & 不存在兼容问题。\\ % 最后一行 	
+% 		\bottomrule
+%     \end{tabular*}
+% 		\label{tab:1} % 表的标签，需要在全文中唯一，即不和其他任何标签同名
+% \end{table}
+
+
+% \subsection{{\LaTeX}的缺点}
+% {\LaTeX}的缺点体现在两个方面：起点门槛较高和可视性差。
+% \begin{itemize}  % 不带序号的列表
+% 	\item 起点门槛较高：就算是编写很简单的文章，也要花费较多的时间和精力去学习那么枯燥的命令和使用方法，特别是编辑公式较容易出错。
+% 	\item 可视性差：需要经过编译才能看到最终的排版结果。
+% \end{itemize}
+
+% \subsection{{\LaTeX}的优点}
+%  {\LaTeX}拥有诸多优点，包括排版质量好、提供易用的注释功能、格式自动处理等等。
+
+% \begin{description}  % 用于对若干条目集中进行解释
+% 	\item[排版质量高：] {\LaTeX}提供的排版质量表现在对版面尺寸的严格控制，对字距、词距、行距和段距等字符间距松紧适中的掌握，对数学式的精确细致设计等等。
+% 	\item[具备注释功能：] 在{\LaTeX}源文件（.tex文件）中，可在任何地方使用注释标记（以``\%''开头），将注释内容完整地保留下来。
+% 	\item[格式自动处理：] 作者只需选定文稿的类型，就可以专心内容的创作，至于论文的格式等细节均由{\LaTeX}统一设置。
+% 	\item[数学公式精美：] 使用{\LaTeX}排版产生数学公式，其效果精致细腻，而且数学公式越复杂这个特点越明显。
+% 	\item[参考文献管理便捷：] {\LaTeX}自带一个辅助工具程序BibTex，它可以为作者创建一个参考文献数据库，作者可以自行填充这个数据库，也可以从网上下载内容进行填充。
+% 	\item[通用性强：] 含有各种语言文字的{\LaTeX}源文件可以毫无阻碍地跨系统使用。
+% \end{description}
+
+% \subsection{安装MiKTeX和其他工具软件（适用于Windows）}   % 二级标题，可以用你自己的章节标题去替换
+
+% \subsubsection{MiKTek排版系统}
+% 访问MiKTeX项目主页中的下载（Download）页面：https://miktex.org/download，下载与你的计算机操作系统相匹配的版本，参见图\ref{fig:1}。%引用图片时使用\ref{图的标签}
+
+% \begin{figure}[hb]   %% h和t这两个参数的意思是将表放在当前位置或某页的下方
+%     \centering  % 图片居中放置
+%     \includegraphics[scale=0.98]{imgs/MiKTeXDownLoad.jpg}%图片MiKTeXDownLoad.jpg在当前目录下的imgs子目录里面，也可以使用.png格式的图片，scale指定缩放比例 
+%     \caption{选择与操作系统相匹配的MiKTeX版本进行下载}  % 图的标题在图的下方
+% 		\label{fig:1}  % 图的标签，需要在全文中唯一，即不和其他任何标签同名
+% \end{figure}
+
+% 下载完毕后进行安装（参见图\ref{fig:2}），
+
+% \begin{figure}[ht]
+%     \centering  % 图片居中放置
+%     \includegraphics[scale=0.95]{imgs/Installation.jpg}%图片MiKTeXDownLoad.jpg在当前目录下的imgs子目录里面，也可以使用.png格式的图片 
+%     \caption{选择与操作系统相匹配的MiKTeX版本进行下载}  % 图的标题在图的下方
+% 		\label{fig:2}  % 图的标签，需要在全文中唯一，即不和其他任何标签同名
+% \end{figure}
+
+% 剩余还需要进行的操作包括以下步骤：
+% % 带有序号的列表，形如(1)  (2) ...
+% % \begin{enumerate}[(1)] 
+% % 	\item 看见``设置安装目录''的界面（此处省略），在此处指定将MiKTeX安装在你认为合适的目录下面。
+% % 	\item 接下来的步骤\ldots
+% % 	\item 最后的步骤\ldots
+% % \end{enumerate}
+
+% % 还可以使用带有序号的列表，形如(i)  (ii) ...
+% %\begin{enumerate}[i.] 
+% %	\item a
+% %	\item b	
+% % \end{enumerate}
+
+% % 带有序号的列表，形如 a)  b) ...
+% %\begin{enumerate}[a)] 
+% %	\item a
+% %	\item b	
+% %\end{enumerate}
+
+% % 带有序号的列表，形如 [1] [2] .
+% %\begin{enumerate}  
+% %	\renewcommand{\labelenumi}{[\theenumi].} 
+% %	\item a
+% %	\item b
+% %\end{enumerate}
+
+
+% \subsection{关于引入公式和算法的说明}
+
+% 在论文撰写过程中，有时会需要编辑公式或者引入算法描述，这里我们举两个例子来说明用法。
+
+% \begin{equation}
+% SSIM(x,y)=\frac{\left(2\mu_x\mu_y+c1\right)\left(\sigma_{xy}+c2\right)}
+% {\left(\mu_x^2+\mu_y^2+c1\right)\left(\sigma_x^2+\sigma_y^2+c2\right)}
+% \label{eq:1} % 公式的标签，全文唯一
+% \end{equation}
+
+%  % 注意下面这行不能缩进，所以使用了\noindent命令。
+% \noindent 其中$\mu_x$代表x的均值, $\mu_y$ 代表y的均值,而$\sigma_x^2$是x的方差\ldots
+% 如果需要引用上面的公式，可以这样使用：关于{SSIM(x,y)}的计算，请参见公式\ref{eq:1}。
+
+% 有的时候需要介绍某个算法的设计思想，此时可以参考算法\ref{alg:1}的做法来展示。
+% % \begin{algorithm}
+% %         \begin{algorithmic}[1] %每行显示行号
+% %             \Require $Array$数组，$n$数组大小
+% %             \Ensure 逆序数
+% %             \Function {MergerSort}{$Array, left, right$}
+% %                 \State $result \gets 0$
+% %                 \If {$left < right$}
+% %                     \State $middle \gets (left + right) / 2$
+% %                     \State $result \gets result +$ \Call{MergerSort}{$Array, left, middle$}
+% %                     \State $result \gets result +$ \Call{MergerSort}{$Array, middle, right$}
+% %                     \State $result \gets result +$ \Call{Merger}{$Array,left,middle,right$}
+% %                 \EndIf
+% %                 \State \Return{$result$}
+% %             \EndFunction                      
+% %         \end{algorithmic}
+% % 				\caption{归并排序}
+% % 				\label{alg:1}
+% %     \end{algorithm}
+
+
