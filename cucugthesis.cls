@@ -194,20 +194,15 @@
     \renewcommand{\headrulewidth}{0pt}
 }
 
-\titleformat{\section}[block]{\vspace*{-24pt} \centering \zihao{3} \heiti}
-{\thesection、}{0pt}{\vspace{1pt}}
 
 \newcommand{\contentpage}{
   \begin{spacing}{1.5}
     \tableofcontents
   \end{spacing}
 
-  \titleformat{\section}[block]{\vspace*{-5pt} \centering \zihao{3} \heiti}
-{\thesection、}{0pt}{\vspace{8pt}}
-
   \clearpage
 
-  \chead{\zihao{5}\ziju{0.08}\fangsong{中国传媒大学本科毕业论文}}
+  \chead{\zihao{5}\ziju{0.08}\fangsong{华南师范大学本科毕业论文}}
   \renewcommand{\headrulewidth}{1.0pt}
   \pagenumbering{arabic}
   \setcounter{page}{1}
@@ -219,7 +214,6 @@
   \stepcounter{section}
   \addcontentsline{toc}{section}{#1}
 }
-
 
 
 %%%%%%%%%%%%%%%%%%%%%% 封面 %%%%%%%%%%%%%%%%%%%%%%
