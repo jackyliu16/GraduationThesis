@@ -238,40 +238,37 @@
   \begin{titlepage}
     \vspace*{-10pt}
   
-    \noindent
-    \zihao{-2}\kaishu{
-      保密类别\dunderline{0.6pt}{\makebox[4cm][c]{\hphantom{空白}}}\hfill
-      编号\dunderline{0.6pt}{\makebox[5cm][c]{\studentID}}
-    }
-  
     \vspace*{2\ccwd}
   
+    \centering
+    \includegraphics{south_china_normal_university_icon.jpg}
     \centering
     \zihao{-0}\textbf{\songti{毕\hphantom{空}业\hphantom{空}论\hphantom{空}文}}
     \vspace{0.6cm}
   
     \zihao{-2}\textbf{\heiti\thesisTitle}
-  
-    \vspace{5.5cm}
+    \vspace{2.5cm}
   
     \flushleft
   
     \begin{spacing}{1.5}
         \infobox{学\hphantom{空白}院}{\yourDept}
-  
+
         \infobox{专\hphantom{空白}业}{\yourMajor}
-  
+
         \infobox{班\hphantom{空白}级}{\yourClass}
-  
+
         \infobox{姓\hphantom{空白}名}{\yourName}
-  
+
+        \infobox{学\hphantom{空白}号}{\studentID}
+        
         \infobox{指导教师}{\yourMentor}
     \end{spacing}
   
     \vspace{3cm}
 
     \centering
-    \zihao{-2}\ziju{0.5}\textbf{\songti{中国传媒大学}}
+    \zihao{-2}\ziju{0.5}\textbf{\songti{华南师范大学}}
   
     \zihao{-2}\ziju{0.5}\textbf{\songti{\zhtoday}}
   \end{titlepage}
