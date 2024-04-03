@@ -5,11 +5,11 @@
         "systems": "systems"
       },
       "locked": {
-        "lastModified": 1687709756,
-        "narHash": "sha256-Y5wKlQSkgEK2weWdOu4J3riRd+kV/VCgHsqLNTTWQ/0=",
+        "lastModified": 1710146030,
+        "narHash": "sha256-SZ5L6eA7HJ/nmkzGG7/ISclqe6oZdOZTNoesiInkXPQ=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "dbabf0ca0c0c4bce6ea5eaf65af5cb694d2082c7",
+        "rev": "b1d9ab70662946ef0850d488da1c9019f3a9752a",
         "type": "github"
       },
       "original": {
@@ -28,26 +28,25 @@
         ]
       },
       "locked": {
+        "dirtyRev": "ddfc8c9f495ffb666bd50f42a3b9523786e3b70f-dirty",
+        "dirtyShortRev": "ddfc8c9-dirty",
         "lastModified": 1712132194,
-        "narHash": "sha256-Dhl8W3eIp7CPdvpKMGro3n2rLasu8wyAiSI94Un28cs=",
-        "owner": "jackyliu16",
-        "repo": "latex-utils",
-        "rev": "ddfc8c9f495ffb666bd50f42a3b9523786e3b70f",
-        "type": "github"
+        "narHash": "sha256-yK+bql7RZpleLzsfvBBzSG3ZXUfuKlkVmM/VOy2+Vjg=",
+        "type": "git",
+        "url": "file:///home/jacky/Documents/latex-utils/"
       },
       "original": {
-        "owner": "jackyliu16",
-        "repo": "latex-utils",
-        "type": "github"
+        "type": "git",
+        "url": "file:///home/jacky/Documents/latex-utils/"
       }
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1688322751,
-        "narHash": "sha256-eW62dC5f33oKZL7VWlomttbUnOTHrAbte9yNUNW8rbk=",
+        "lastModified": 1712122226,
+        "narHash": "sha256-pmgwKs8Thu1WETMqCrWUm0CkN1nmCKX3b51+EXsAZyY=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "0fbe93c5a7cac99f90b60bdf5f149383daaa615f",
+        "rev": "08b9151ed40350725eb40b1fe96b0b86304a654b",
         "type": "github"
       },
       "original": {
