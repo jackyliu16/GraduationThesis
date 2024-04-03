@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999995 (TeX Live 2023/nixos.org) (preloaded format=xelatex 1980.1.1)  4 APR 2024 04:11
+This is XeTeX, Version 3.141592653-2.6-0.999995 (TeX Live 2023/nixos.org) (preloaded format=xelatex 1980.1.1)  4 APR 2024 05:07
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -881,18 +881,18 @@ LaTeX Font Info:    ... okay on input line 20.
 * layoutoffset:(h,v)=(0.0pt,0.0pt)
 * modes: 
 * h-part:(L,W,R)=(85.35826pt, 446.70819pt, 65.44142pt)
-* v-part:(T,H,B)=(65.44142pt, 701.64473pt, 77.9607pt)
+* v-part:(T,H,B)=(65.44142pt, 705.6281pt, 73.97733pt)
 * \paperwidth=597.50787pt
 * \paperheight=845.04684pt
 * \textwidth=446.70819pt
-* \textheight=701.64473pt
+* \textheight=705.6281pt
 * \oddsidemargin=13.08827pt
 * \evensidemargin=13.08827pt
 * \topmargin=-299.89203pt
 * \headheight=284.52756pt
 * \headsep=17.07182pt
 * \topskip=10.0pt
-* \footskip=18.49411pt
+* \footskip=30.0pt
 * \marginparwidth=65.0pt
 * \marginparsep=11.0pt
 * \columnsep=10.0pt
@@ -915,9 +915,38 @@ Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: listings package is loaded.
 Package caption Info: End \AtBeginDocument code.
 \c@lstlisting=\count351
+
+
+Package fontspec Warning: Font "FandolKai-Regular" does not contain requested
+(fontspec)                Script "CJK".
+
+
+Package fontspec Info: Font family 'FandolKai-Regular(0)' created for font
+(fontspec)             'FandolKai-Regular' with options
+(fontspec)             [Script={CJK},Extension={.otf},AutoFakeBold={1},AutoFake
+Slant={0.167}].
+(fontspec)              
+(fontspec)              This font family consists of the following NFSS
+(fontspec)             series/shapes:
+(fontspec)              
+(fontspec)             - 'normal' (m/n) with NFSS spec.:
+(fontspec)             <->"[FandolKai-Regular.otf]/OT:language=dflt;"
+(fontspec)             - 'small caps'  (m/sc) with NFSS spec.: 
+(fontspec)             - 'bold' (b/n) with NFSS spec.:
+(fontspec)             <->"[FandolKai-Regular.otf]/OT:language=dflt;embolden=1;
+"
+(fontspec)             - 'bold small caps'  (b/sc) with NFSS spec.: 
+(fontspec)             - 'italic' (m/it) with NFSS spec.:
+(fontspec)             <->"[FandolKai-Regular.otf]/OT:language=dflt;slant=0.167
+;"
+(fontspec)             - 'italic small caps'  (m/scit) with NFSS spec.: 
+(fontspec)             - 'bold italic' (b/it) with NFSS spec.:
+(fontspec)             <->"[FandolKai-Regular.otf]/OT:language=dflt;embolden=1;
+slant=0.167;"
+(fontspec)             - 'bold italic small caps'  (b/scit) with NFSS spec.: 
+
 File: south_china_normal_university_icon.jpg Graphic file (type bmp)
 <south_china_normal_university_icon.jpg>
-
 
 LaTeX Font Warning: Font shape `TU/TimesNewRoman(0)/b/n' undefined
 (Font)              using `TU/TimesNewRoman(0)/m/n' instead on input line 22.
@@ -986,35 +1015,23 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) [1
 
 ]
-Underfull \hbox (badness 10000) in paragraph at lines 26--28
+Underfull \hbox (badness 10000) in paragraph at lines 27--31
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 26--28
+Underfull \hbox (badness 10000) in paragraph at lines 27--31
 
  []
 
 [1
 
-]
-Underfull \hbox (badness 10000) in paragraph at lines 32--34
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 32--34
-
- []
-
-[2
-
-
 ] (./main.toc)
 \tf@toc=\write4
 \openout4 = `main.toc'.
 
- [3
+ [2
+
 
 ] (./main.aux)
  ***********
@@ -1026,15 +1043,15 @@ L3 programming layer <2022/08/05>
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: ED70643CCFF4AD9D4C241F928B928762;176.
+(rerunfilecheck)             Checksum: DF50DCEE37D9738AD0AAD72D7400948B;92.
  ) 
 Here is how much of TeX's memory you used:
- 20481 strings out of 476772
- 428806 string characters out of 5798788
+ 20408 strings out of 476772
+ 424570 string characters out of 5798788
  1927839 words of memory out of 5000000
- 42188 multiletter control sequences out of 15000+600000
- 572204 words of font info for 123 fonts, out of 8000000 for 9000
+ 42122 multiletter control sequences out of 15000+600000
+ 564477 words of font info for 96 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 108i,11n,111p,541b,498s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 108i,11n,111p,541b,503s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on main.pdf (4 pages).
+Output written on main.pdf (3 pages).

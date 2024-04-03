@@ -187,7 +187,6 @@
     \renewcommand{\headrulewidth}{0pt}
 }
 
-
 \newcommand{\contentpage}{
   \begin{spacing}{1.5}
     \tableofcontents

@@ -36,7 +36,8 @@
 
         # TODO:  impure
         buildPhase = ''
-          xelatex main.tex cucugthesis.cls
+          xelatex main.tex 
+          xelatex main.tex 
         '';
         installPhase = ''
           mv main.pdf $out 
