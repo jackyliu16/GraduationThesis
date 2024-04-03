@@ -1,0 +1,48 @@
+% ref: https://gist.github.com/crosstyan/b22524d397956d1ec2e032ddce0f9d84
+% 这是注释, 注释不会被解释成代码, 也不会被编译到文章里面
+
+% 这是文档类, 你会看到有人说要用 ctex 文档类(ctexrep), 我觉得无所谓啦, 只要用Xelatex编译就行
+\documentclass[a4paper]{report} % 或者用article, 那就没有chapter环境了
+
+% 下面是声明package (一般翻译成「宏包」可是我不觉得这是一个很好的翻译)
+% 类似于其他编程语言的导入库 import
+% CJK支持, 没它你就显示不了日文中文韩文等
+\usepackage{xeCJK}
+
+% 一般会在这里写些配置文件啥的, 在这全用默认就好
+
+% 作者信息, 标题和日期, 在maketitle中有用, 但是实际上似乎也没啥卵用. 
+\title{Digi Note}
+\author{Crosstyan}
+\date{Augest 2020}
+
+% begin声明了一个环境, 类似于HTML的<document>
+\begin{document}
+\maketitle % 没啥卵用, 一般我都不写
+\chapter{这是章节}
+\section{这是section}
+\begin{itemize}
+  \item 这是无序列表
+  \item 列表
+  \item 表
+\end{itemize}
+\subsection{这是subsection}
+这是一段文字\\我给它换了下行. 因为英文默认是首段不缩进, 所以是这样的奇怪的样式. 
+
+\par 这是新一段文字, 注意缩进\\我又换了一下行. 
+注意, 一个回车是没办法使得编译出来的文档换行的. 以下是一段Lorem. 
+學情同，灣引那海全發青種度，地玩統夫團地相元道品事市今般這日信，
+職領愛內手通大為關他力我達無看到燈：導原越的國：解好爸個面演算其軍原：海紀。
+
+但是两个回车却可以换段. 
+\subsubsection{这是subsubsection}
+这是行内的公式$1+1=2$
+
+这是居中的公式$$\sqrt{-1}=i$$
+% \subsubsubsection{没有三个sub}
+\paragraph{下一层就是paragraph}
+这个十分简单的示例不涉及其他多余的宏包
+\subparagraph{还有subparagraph}
+应该没有再下面的层级了, 除非你想自定义一个
+\end{document}
+% end结束了一个环境, 类似于HTML的</document>
