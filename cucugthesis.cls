@@ -236,9 +236,15 @@
 
 \newcommand{\coverpage}{
   \begin{titlepage}
-    \vspace*{-10pt}
+    % \vspace{-2pt}
+
+    \noindent
+    \zihao{-2}\kaishu{
+      保密类别\dunderline{0.6pt}{\makebox[4cm][c]{\hphantom{空白}}}\hfill
+      编号\dunderline{0.6pt}{\makebox[5cm][c]{\studentID}}
+    }
   
-    \vspace*{2\ccwd}
+    % \vspace*{2\ccwd}
   
     \centering
     \includegraphics{south_china_normal_university_icon.jpg}
@@ -247,7 +253,7 @@
     \vspace{0.6cm}
   
     \zihao{-2}\textbf{\heiti\thesisTitle}
-    \vspace{2.5cm}
+    \vspace{1.5cm}
   
     \flushleft
   
@@ -261,7 +267,7 @@
         \infobox{姓\hphantom{空白}名}{\yourName}
 
         \infobox{学\hphantom{空白}号}{\studentID}
-        
+
         \infobox{指导教师}{\yourMentor}
     \end{spacing}
   
