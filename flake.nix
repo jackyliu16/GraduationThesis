@@ -32,7 +32,9 @@
 
         fonts = [
           "${./fonts}"
-        ];
+        ] ++ (with pkgs; [
+          times-newer-roman
+        ]);
 
         # TODO:  impure
         buildPhase = ''
