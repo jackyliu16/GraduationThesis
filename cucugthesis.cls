@@ -62,15 +62,7 @@
 
 \renewcommand{\captionfont}{\songti\zihao{5}}
 
-% 图表与公式编号
-\counterwithin{figure}{section}
-\counterwithin{table}{section}
-\counterwithin{equation}{section}
-\renewcommand{\thefigure}{\arabic{section}-\arabic{figure}}
-\renewcommand{\thetable}{\arabic{section}-\arabic{table}}
-\renewcommand{\theequation}{\arabic{section}-\arabic{equation}}
-
-\renewcommand{\appendix}{
+\newcommand{\appendixformat}{
   \renewcommand\figurename{附图}
   \renewcommand\tablename{附表}
   \renewcommand{\thefigure}{\arabic{figure}}
