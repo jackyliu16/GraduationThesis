@@ -18,7 +18,7 @@
 \LoadClass{article}
 
 % 设置纸张格式
-\RequirePackage[ a4paper, left=3cm,right=2.3cm,top=2.3cm,bottom=2.74cm, headheight=10cm, headsep=0.3cm,footskip=0.65cm]{geometry}
+\RequirePackage[a4paper,left=3cm,right=2.3cm,top=2.3cm,bottom=2.6cm,headheight=10cm,headsep=0.3cm]{geometry}
 \setlength{\headsep}{0.6cm}
 
 \RequirePackage{amsthm,amsmath,amssymb,indentfirst,booktabs,multicol,multirow,xcolor,graphicx,fancyhdr,hologo}
