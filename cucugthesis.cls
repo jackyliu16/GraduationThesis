@@ -168,7 +168,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%% 目录样式 %%%%%%%%%%%%%%%%%%%%%%
 
-\renewcommand\contentsname{目~~~~录}
+\renewcommand\contentsname{\heiti \centering \zihao{3} 目~~~~录}
 
 \titlecontents{section}[0pt]{\bfseries \songti \zihao{-4}}
 {\thecontentslabel、}{}
