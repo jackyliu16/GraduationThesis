@@ -44,6 +44,15 @@
 % 段落缩进2字符
 \setlength\parindent{2\ccwd}
 
+\usepackage{xltxtra,fontspec,xunicode}
+\usepackage[slantfont,boldfont]{xeCJK} % 允许斜体和粗体
+
+\setCJKmainfont{Kai}   % 设置缺省中文字体
+\setCJKmonofont{Hei}   % 设置等宽字体
+\setmainfont{Optima}   % 英文衬线字体
+\setmonofont{Monaco}   % 英文等宽字体
+\setsansfont{Trebuchet MS} % 英文无衬线字体
+
 %%%%%%%%%%%%%%%%%%%%%% 引用格式 %%%%%%%%%%%%%%%%%%%%%%
 
 \RequirePackage{gbt7714}
