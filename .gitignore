@@ -10,6 +10,7 @@
 *.fls
 *.synctex*
 *.xdv
+*.pdf
 /result
 
 ./fonts/*
