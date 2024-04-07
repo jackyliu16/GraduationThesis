@@ -82,12 +82,30 @@ export PATH=$PATH:${pkgs.aarch64-linux-musl-cross}/bin: # ... etc
 
     该 cvitek 物理网卡驱动主要作用在华山派，荔枝派等主机上。但与我们采用的树莓派4B中由 Soc 中集成 MAC 实现不一样，他们采用的这款设备提供了一个额外的以太网 MAC 控制器的 IP 核DWMAC 来完成 MAC 层的实现。
 
-    在整套实现中，用户库通过通过对于底层 module::axnet 中提供的统一通信原语的封装，实现了
-    
-\begin{figure}[ht]
-    \centering
-    \includegraphics[scale=0.4]{imgs/cvitek.jpg}
-    \caption{cvitek 驱动调用栈}    \label{fig::cvitek}
-\end{figure}
+        
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[scale=0.4]{imgs/cvitek.jpg}
+        \caption{cvitek 驱动调用栈}    \label{fig::cvitek}
+    \end{figure}
+
+    在整套实现中，ulib::libax 通过调用 module::axnet 所实现的底层方法（如TcpSocket，UdpSocket等）实现了用于 TCP/UDP 通信的通信源语。
+    在 module::axnet 中这个部分的实现是针对于 
+    \href{https://github.com/smoltcp-rs/smoltcp}{smoltcp} 这个 tcp/ip 协议栈进行了针对性的改造（非标准库环境等改造）而完成的。
+    如果在编译的时候添加了对应的 features, ArceOS 会自动根据 module::axdriver::build.rs 文件中所进行的声明，
+    将一个带有不同设备名称的 feature 加入默认 feature list 中，以方便实现基于设备组(phy, net, block, display) 实现的自动驱动加载。
+    在完成 build.rs 编译脚本中的检查等操作之后，Cargo 在对于 axdriver 进行编译的时候，
+    就会识别到当前编译携带了 cvitekphy/nic feature 从而根据 \#[cfg(feature = "cvitekphy")] 启用 cvitek\_traits.rs 的编译。
+    cvitek\_traits.rs 文件将 ArceOS 上层 module 所提供给下层 crates 的方法支持（如dma\_alloc\_pages，delay等）
+    通过 traits 的默认实现传递给下方的 crates 进行使用以实现 crates 层逆向调用 modules 层方法的效果。
+    \footnote{在cvitek\_traits.rs 文件中 CvitekPhyTraits 声明并实现于 CvitekPhyTraitsImpl }。
+    同时，在 module::axnet::driver.rs 中基于 cfg\_if 库的条件编译语句也实现了将 cvitek 网卡驱动转换成为 AxNetDevice 
+    并实现了 Driver traits 下属的 probe\_global 方法的效果。
+    最后在 module::axdriver 中 for\_each\_driver 宏的帮助下，ArceOS 将各个加载的网卡驱动转换成为 
+    Driver 并运行（probe\_global）初始化，并将其添加到 AllDevices 下属的结构体中。
+
+    而根据 ArceOS 的规定，cvitek 以太网卡驱动的实际实现实际上被封装在各自的 crates 中。在 crates::driver\_net 包规定了一系列网络设备、
+    所必须要实现的 traits（如 transmit, receive）等方法。
+    新的网络驱动会使用其内部方法实现这些对应的 traits，将这些方法包装成为 ArceOS 的调用方法。
 
 \subsection{以太网卡驱动实现}
