@@ -1,0 +1,16 @@
+        +
+    0x0 | IOBASE
++------------------------------------+
+ 0x2000 | GENET_RX_OFF
+        | [DMA_DESC_SIZE;TOTAL_DESCS]
+ 0x2C00 | GENET_RDMA_REG_OFF
+        | [DMA_RING_SIZE;DEFAULT_Q]
+ 0x3000 | RDMA_RING_REG_BASE
+        | [DMA_RING_SIZE]
+ 0x3040 | RDMA_REG_BASE
+        | dma_reg
++------------------------------------+
+ 0x4000 | GENET_TX_OFF
+        | As above ...
+        +
+
