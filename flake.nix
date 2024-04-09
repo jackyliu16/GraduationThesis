@@ -23,12 +23,6 @@
         # NOTE: add some latex package you want 
         inherit (pkgs.texlive) xecjk xetex bibtex;
       };
-      # myvscodium = pkgs.vscode-with-extensions.override {
-      #   vscode = pkgs.vscodium;
-      #   vscodeExtensions = with pkgs.vscode-extensions; [
-      #     james-yu.latex-workshop
-      #   ];
-      # };
     in {
       packages.default = latex-utils.lib.${system}.mkLatexPdfDocument {
         name = "mydocument";

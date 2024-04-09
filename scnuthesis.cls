@@ -34,7 +34,7 @@
 
 \PassOptionsToPackage{no-math}{fontspec}
 \RequirePackage[UTF8,scheme=plain]{ctex}
-\setmainfont{Times New Roman}
+\setmainfont{Times Newer Roman}
 
 % 1.25倍行距
 \linespread{1.25}
