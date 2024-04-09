@@ -30,8 +30,8 @@
         inherit texPackages;
         inputFile = "";
         
-        buildInputs = [
-          # myvscodium 
+        nativeBuildInputs = with pkgs; [
+          evince
         ];
 
         fonts = [
