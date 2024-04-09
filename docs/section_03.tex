@@ -109,3 +109,55 @@ export PATH=$PATH:${pkgs.aarch64-linux-musl-cross}/bin: # ... etc
     新的网络驱动会使用其内部方法实现这些对应的 traits，将这些方法包装成为 ArceOS 的调用方法。
 
 \subsection{以太网卡驱动实现}
+
+    根据前文的分析，如果想要实现在 TRANSPORT 层或者 NETWORK 层实现树莓派和主机之间的通信效果，主要需要实现以太网 OSI 七层模型中的 DATA\_LINK 与 PHYDIVSL 层之间的通信，
+    由下图\ref{fig::dataLink}可知，主要需要实现的部分在于使 Soc 上的 MAC 实现能通过 GMII, RGMII，Serial-GMII 等接口标准与 PHY 芯片进行联通，进而调用 PHY 芯片上对于以太网传输介质上光，电等信号进行解析的方法。
+        
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[scale=0.4]{imgs/data_link_layers.jpg}
+        \caption{IEEE 802.8 数据链路层}    \label{fig::dataLink}
+    \end{figure}
+
+    基于 树莓派 4B Soc bcm2711 芯片手册，其板载 PHY 芯片 BCM54213PE 数据表以及 IEEE 802.3 协议手册可以了解到，目前 Soc 和 PHY 之间是存在直连的 RGMII 通信接口的。
+    在 RGMII 通信接口中由 GTK\_CLK, RX\_CLK 实现双向时钟同步，TXD[0:3], RXD[0:3] 实现数据传输，TX\_CTL，RX\_CTL 实现数据传输控制，MDIO 和 MDC 实现 MAC 与 物理层的控制和状态关系的设置。
+    \footnote{虽然在bcm2711数据手册GPIO替代函数表中有提到提供了 RGMII\_MDIO 与 RGMII\_MDC Pins，但是没有找到任何公开资料描述这个部分与底层之间是如何联系起来的}
+
+    % TODO: 其中 GPIO 中也提供了一组 MDIO MDC 有点没太明白这段是为什么添加到这个地方？
+
+    \subsubsection{概念介绍}
+    % NOTE: 我个人感觉没有必要在这里介绍一系列 MDIO 芯片等是如何初始化的，但是如果要凑字数的话感觉也还行 (
+
+    \subsubsection{源码分析}
+
+    根据对于 uboot 源码所进行的分析
+
+
+    \begin{minipage}[t]{0.3\textwidth}
+    \begin{lstlisting}
+       +
+   0x0 | IOBASE
++------------------------------------+
+0x2000 | GENET_RX_OFF
+       | [DMA_DESC_SIZE;TOTAL_DESCS]
+0x2C00 | GENET_RDMA_REG_OFF
+       | [DMA_RING_SIZE;DEFAULT_Q]
+0x3000 | RDMA_RING_REG_BASE
+       | [DMA_RING_SIZE]
+0x3040 | RDMA_REG_BASE
+       | dma_reg
++------------------------------------+
+0x4000 | GENET_TX_OFF
+       | As above ...
+       +
+    \end{lstlisting}
+    \end{minipage}
+
+    \hfill
+
+    \begin{minipage}[t]{0.3\textwidth}
+        ABCASDASD:w
+        dawd
+        qwd
+
+    \end{minipage}
