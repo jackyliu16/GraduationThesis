@@ -21,7 +21,7 @@
       pkgs = import nixpkgs {inherit system;};
       texPackages = {
         # NOTE: add some latex package you want 
-        inherit (pkgs.texlive) xecjk xetex bibtex;
+        inherit (pkgs.texlive) xecjk xetex bibtex texcount;
       };
     in {
       packages.default = latex-utils.lib.${system}.mkLatexPdfDocument {

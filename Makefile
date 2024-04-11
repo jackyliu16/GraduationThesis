@@ -11,8 +11,6 @@
 # Nix package manager install and uninstall 
 .PHONY: install-nix uninstall-nix monitor
 
-
-
 # -------------------------------------------------------------------------------- 
 # Variable Configuration 
 # -------------------------------------------------------------------------------- 
@@ -52,6 +50,13 @@ ifeq ($(IN_NIX_SHELL),impure)
 	latexmk -c
 else
 	rm -rf *.aux *.bbl *.bbl *.log *.out *.toc *.pdf *.gz *.zip *.aux *.log *.bbl *.blg *.toc *.out *.fdb_latexmk *.fls *.xdv
+endif
+
+count: # Open a develop shell with tools
+ifeq ($(IN_NIX_SHELL),impure)
+	texcount -merge ${PACK_NAME}.tex
+else
+	nix develop ".?submodules=1#"  ${SUBSTITUTERS} --command texcount -merge ${PACK_NAME}.tex
 endif
 
 #--------------------------------------------------
