@@ -1,8 +1,28 @@
-# Maybe you will not only use one packages.default
+# A simple Nix relevant Makefile help with generate LaTex documents
+# 
+# 	Author: jackyliu16
+# 	Email: 18922251299@163.com
+# -------------------------------------------------------------------------------- 
+# The following commands are currently available:
+
+# PDF documents relative 
+.PHONY: build watch dev clean
+
+# Nix package manager install and uninstall 
+.PHONY: install-nix uninstall-nix monitor
+
+
+
+# -------------------------------------------------------------------------------- 
+# Variable Configuration 
+# -------------------------------------------------------------------------------- 
 PACK_NAME ?= main
 SUBSTITUTERS := --option substituters https://mirror.sjtu.edu.cn/nix-channels/store
 DEFAULT_PDF_READER := xdg-open
 
+# -------------------------------------------------------------------------------- 
+# PDF documents relative 
+# -------------------------------------------------------------------------------- 
 default: clean build
 	${DEFAULT_PDF_READER} ${PACK_NAME}.pdf
 
@@ -18,7 +38,6 @@ ifeq ($(IN_NIX_SHELL),impure)
 	latexmk -xelatex -pvc -pv ${PACK_NAME}.tex
 else
 	nix develop ".?submodules=1#"  ${SUBSTITUTERS} --command latexmk -xelatex -pvc -pv ${PACK_NAME}.tex
-
 endif
 
 dev: # Open a develop shell with tools
@@ -38,7 +57,6 @@ endif
 #--------------------------------------------------
 # Nix Instruction
 #--------------------------------------------------
-.PHONY: install-nix uninstall-nix monitor
 
 # Install Single-User Nix into your system
 install-nix:
@@ -71,7 +89,7 @@ monitor:
 	# https://github.com/NixOS/nix/pull/8334
 
 #-------------------------------------------------- 
-#  OTHERS
+# OTHERS
 #-------------------------------------------------- 
 git-log:
 	git log --graph --abbrev-commit --decorate --date=relative --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
