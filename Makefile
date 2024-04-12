@@ -33,9 +33,9 @@ endif
 
 watch: # watch and auto rebuild your documents
 ifeq ($(IN_NIX_SHELL),impure)
-	latexmk -xelatex -pvc -pv ${PACK_NAME}.tex
+	latexmk -xelatex -pv -pvc ${PACK_NAME}.tex
 else
-	nix develop ".?submodules=1#"  ${SUBSTITUTERS} --command latexmk -xelatex -pvc -pv ${PACK_NAME}.tex
+	nix develop ".?submodules=1#"  ${SUBSTITUTERS} --command latexmk -xelatex -pv -pvc ${PACK_NAME}.tex
 endif
 
 dev: # Open a develop shell with tools
