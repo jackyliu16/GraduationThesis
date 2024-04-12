@@ -20,19 +20,23 @@
 % 封面（自动生成）
 \coverpage
 
-% 中文摘要
 \begin{abstract}
-为了加强对一些特定区域的管理和保护，通常会使用视频监控系统以获取相关信息，如...。
-\keywords{单高斯背景建模；腐蚀；目标匹配}     % 中文关键词
+% TODO check
+\fontsize{15}{20}\selectfont
+随着信息化时代的逐渐发展，各种芯片企业由于芯片制程的缘故，在开发体积更小，更为集中，的芯片上面临了越来越多的问题。
+本文尝试采用一种实验性的操作系统 arceos，利用其类同于 libos 的优秀组合能力，间接利用rust语言零抽象成本的效果，将现有的，
+由设备厂商提供的原始设备驱动如串口指纹驱动与以太网驱动，转写成为 arceos 上能使用的模块化驱动，并尝试将其与一般 RTlinux, RTOS 如 RTThread 等操作系统剪枝后的实现
+进行对比，尝试讨论采用这种新型的操作系统重写现有实现的优劣。
+\keywords{unikernel, arceos, 组件化操作系统，网卡驱动}     % 中文关键词
 \end{abstract}
 
 % 英文摘要
-\begin{abstractEN}
-The story takes place on a fictitious continent. An unknown force attacked this world, and darkness swallowed everything, followed by various monster attacks, and the human world was completely destroyed. At the time when hope was about to be shattered,
-people finally discovered that although these monsters are powerful, they can only exert their full strength in the dark.
-Although the chances are slim in the light, people still have the power to fight. The surviving people from various places built several giant lighthouses and built gathering places around the lighthouses. In order to maintain this light curtain, the last high wall of mankind, people have to go deep into the dark forest for adventure.
-\keywordsEN{Dark Forest, Game Design, RPG}       % 英文关键词
-\end{abstractEN}
+% \begin{abstractEN}
+% The story takes place on a fictitious continent. An unknown force attacked this world, and darkness swallowed everything, followed by various monster attacks, and the human world was completely destroyed. At the time when hope was about to be shattered,
+% people finally discovered that although these monsters are powerful, they can only exert their full strength in the dark.
+% Although the chances are slim in the light, people still have the power to fight. The surviving people from various places built several giant lighthouses and built gathering places around the lighthouses. In order to maintain this light curtain, the last high wall of mankind, people have to go deep into the dark forest for adventure.
+% \keywordsEN{Dark Forest, Game Design, RPG}       % 英文关键词
+% \end{abstractEN}
 
 % 目录（自动生成）
 \contentpage
@@ -48,13 +52,8 @@ Although the chances are slim in the light, people still have the power to fight
     \bibliography{references.bib}
 \end{references}
 
-\appendix
+% \appendix
 % \include{docs/appendix_A}
 % \include{docs/appendix_B}
-
-\nonumsection{后记}
-鉴于要展现的是一个黑暗的魔幻世界，本游戏采用偏向于哥特式，色调偏暗的2D美术风格。而建筑则为偏向于中世纪欧洲的建筑风格。
-哥特式风格偏向暗系，可以将玩家在森林中的黑暗无所不在的压迫感表现得淋漓尽致，能使得玩家在重见光明时的欣喜提升到最大。类似于盐和庇护所和地下城堡2等游戏。
-但是本游戏在光照上将更加黑暗，人物更加精致。建筑风格与环境的搭建将参考中世纪欧洲建筑风格。玩家在探索中也会见到各种失落的中世纪欧洲城市与遗迹，更加符合玩家审美。
 
 \end{document}
