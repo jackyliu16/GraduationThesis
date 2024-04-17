@@ -225,7 +225,7 @@ static int bcmgenet_init_rx_ring(struct bcmgenet_priv *priv,
     且设置为相同值，就比如说当前指纹模块与树莓派主控模块之间采用的是57600Bps，就相当于在信号线上进行通信的时候，每个信号占据 1/57600 s。
 
     在信号线上没有进行传输的时候，信号线上保持高电平。在传输开始时，发送端会特地给一个低电平作为传输开始标记
-    接受端收到了这个信号之后根据前面规定的每隔1/波特率秒对于信号线电平进行采样，将电平信号转换成为实际的字符。
+    接受端收到了这个信号之后根据前面规定的每隔 1/波特率 秒对于信号线电平进行采样，将电平信号转换成为实际的字符。
 
     \begin{figure}[ht]
         \centering
@@ -233,13 +233,13 @@ static int bcmgenet_init_rx_ring(struct bcmgenet_priv *priv,
         \caption{UART 跳变图}    \label{fig::uart}
     \end{figure}
 
-    按照 FPM383F 通信协议要求的那样，在串口层面使用小端序，十位帧格式（1位起始位，1位停止位，8位数据位），采用 57600Bps进行数据传输。
+    FPM383F 通信协议要求在串口层面使用小端序，十位帧格式（1位起始位，1位停止位，8位数据位），默认采用 57600Bps进行数据传输。
+    \cite{noauthor_fpm383c_nodate}
 
-    根据 FPM383F 的规定，串口层面传输的字节数据，在链路层面实际上以类似于下文中的数据结构\ref{FPM383F::UARTdataFrame}进行存在，
-    在进行发送的时候逐个字节的进行传输。
-
-    在树莓派上提供了一系列与 UART 相关的寄存器，如 UART0, UART1(mini), UART2-5等，考虑到目前 GPIO 口的占用情况，我采用了 GPIO4,5 对应的
-
+    根据 FPM383F 通信协议的规定，串口层面传输的字节数据，在链路层面实际上以类似于下文中的数据结构\ref{FPM383F::UARTdataFrame}进行存在，
+    在进行发送的时候逐个字节的进行传输。\cite{noauthor_fpm383c_nodate}
+    从软件层面上讲，无论是发送还是由串口接收数据，均只需要对于对应 UART 的 DR 寄存器进行逐个字节读取或写入即可，具体内容被实现在硬件层面。
+    
     \begin{table}[ht]
         \centering
         \begin{tabular}{|l|l|l|l|l|}
@@ -249,6 +249,53 @@ static int bcmgenet_init_rx_ring(struct bcmgenet_priv *priv,
         \end{tabular}
         \caption{UART 数据帧格式表} \label{FPM383F::UARTdataFrame}
     \end{table}
+    
+    根据 FPM383F 通信协议的设定，应用层面其实由两种类型的命令构成。一种是主机向从机发送的请求，如图 \ref{FPM383F::UARTUserRequest}
+    所示，另一种是从机（FPM383F）响应主机的请求，向主机发送响应，如图 \ref{FPM383F::UARTUserResponse}
+
+    \begin{table}[ht]
+        \centering
+        \begin{tabular}{|l|l|l|l|l|}
+        \hline
+        \multicolumn{1}{|c|}{格式} & 校验密码 & 命令 & 数据内容        & 校验和 \\ \hline
+        长度(Byte)                 & 4    & 2  & N(0$\sim$n) & 1   \\ \hline
+        \end{tabular}
+        \caption{UART 请求格式表} \label{FPM383F::UARTUserRequest}
+    \end{table}
+
+    \begin{table}[ht]
+        \centering
+        \begin{tabular}{|l|l|l|l|l|l|}
+        \hline
+        \multicolumn{1}{|c|}{格式} & 校验密码 & 命令 & 错误码 & 数据内容        & 校验和 \\ \hline
+        长度(Byte)                 & 4    & 2  & 4   & N(0$\sim$n) & 1   \\ \hline
+        \end{tabular}
+        \caption{UART 响应格式表} \label{FPM383F::UARTUserResponse}
+    \end{table}
+
+    我这里采用我实现过程中相对比较复杂的一个部分，对于主从机响应的整个过程进行说明，如图\ref{FPM383F::DownloadFingerPrintInfo}所示。
+    在我们从指纹模块获取对应指纹信息并且上传到上位机的时候，我们需要先使用0x53命令，向串口模块请求上传对应 ID 的指纹信息，
+    指纹模块在没有出现错误的情况下会反馈特征长度，同时错误码置为0,出错的时候则反之。
+    获取到该ID对应的整体特征长度之后，我们就可以通过循环命令，逐帧
+    \footnote{根据通信手册，在同一帧下用户层最多只能添加128位的数据(在此处特指用于传输特征信号的信息位)，因此需要逐帧进行发送}
+    请求指纹模块上传该部分的指纹特征信息，最终在上位机将上述全部指纹特征信息整合到一起。
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[scale=0.4]{./imgs/指纹信息下载.jpg}
+        \caption{指纹信息下载}    \label{FPM383F::DownloadFingerPrintInfo}
+    \end{figure}    
+
+    \subsubsection{实现说明}
+
+    在树莓派上提供了一系列与 UART 相关的寄存器，如 UART0, UART1(mini), 
+    UART2-5等，考虑到目前 GPIO 口的占用情况，我选用了 GPIO4,5 所对应的串口
+    UART3 来完成串口信息交换。
+
+    我参照 2020 年 jonlamb-gh rpi4-rust-workspace 仓库\cite{rpi4-rust-workspace}
+    提供的基于树莓派 UART 的串口树莓派初始化方案，进行了大量的适应性修改，在原先仅实现了串口收发包的基础上
+    实现了对于 FPM383F 通信协议的适配，实现了解析，生成等功能。同时，由于根据上位机中实现指纹注册功能的设计，
+    我同样使用 python 语言在上位机中实现了对应的功能。
 
 
 
