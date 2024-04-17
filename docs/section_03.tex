@@ -77,7 +77,7 @@ export PATH=$PATH:${pkgs.aarch64-linux-musl-cross}/bin: # ... etc
 %     \newpage
 
 
-\subsection{ArceOS 操作系统现有驱动调用分析}
+\subsection{ArceOS 操作系统现有网络驱动实现分析}
 
     下图\ref{fig::cvitek}左侧的部分是 ArceOS 操作系统的整体布局，右侧是现有\href{https://github.com/yuoo655/arceos_net/tree/hsp}{cvitek 物理网卡驱动} 的逐层调用情况。
 
@@ -126,10 +126,7 @@ export PATH=$PATH:${pkgs.aarch64-linux-musl-cross}/bin: # ... etc
 
     % TODO: 其中 GPIO 中也提供了一组 MDIO MDC 有点没太明白这段是为什么添加到这个地方？
 
-    \subsubsection{概念介绍}
-    % NOTE: 我个人感觉没有必要在这里介绍一系列 MDIO 芯片等是如何初始化的，但是如果要凑字数的话感觉也还行 (
-
-    \subsubsection{源码分析}
+    % \subsubsection{源码分析}
 
     根据对于 uboot 源码所进行的分析，在以太网 PHY 芯片中维持了如下的数据结构\ref{fig::uboot-genet-struct}。
 
@@ -187,30 +184,76 @@ export PATH=$PATH:${pkgs.aarch64-linux-musl-cross}/bin: # ... etc
     \end{minipage}
     \end{adjustwidth}
 
-    \newpage
     \begin{lstlisting}[language=C
         , caption={Initialize Rx priority queues}
         , label={code::InitRxRings}
         , numbers = left
         , breaklines=true
         , breakatwhitespace=true]
-for (i = 0; i < priv->hw_params->rx_queues; i++) {
-    ret = bcmgenet_init_rx_ring(priv, i,
-                    priv->hw_params->rx_bds_per_q,
-                    i * priv->hw_params->rx_bds_per_q,
-                    (i + 1) *
+static int bcmgenet_init_rx_ring(struct bcmgenet_priv *priv, unsigned int index, unsigned int size, unsigned int start_ptr, unsigned int end_ptr);
+for (i = 0; i < priv->hw_params->rx_queues; i++) { // 初始化函数
+    ret = bcmgenet_init_rx_ring(priv, i, priv->hw_params->rx_bds_per_q,
+                    i * priv->hw_params->rx_bds_per_q, (i + 1) *
                     priv->hw_params->rx_bds_per_q);
-    if (ret)
-        return ret;
-
+    if (ret) return ret;
     ring_cfg |= (1 << i);
     dma_ctrl |= (1 << (i + DMA_RING_BUF_EN_SHIFT));
-
-static int bcmgenet_init_rx_ring(struct bcmgenet_priv *priv,
-                unsigned int index, unsigned int size,
-                unsigned int start_ptr, unsigned int end_ptr);
-}
     \end{lstlisting}
+
+    
+    在具体实现层面其实没有什么特殊于前者的，基本上就是按照原先 cvitek 网卡驱动的开发过程进行的开发，
+    同时，由于 BCM54213PE 的相关寄存器手册不对外进行开发，大部分的寄存器操作都是从 u-boot 或者 树莓派linux
+    中进行的参考，只不过是根据 tock-registers 有界寄存器规约，将原本 u-boot 中存在的大量由
+    宏或者裸地址进行声明的地址位置转变成为了 rust 语言下的定义，并且利用其边界检查等功能，进一步的
+    保证了寄存器的操作的安全性，同时也提供了更加符合人体工学的寄存器操作\ref{tock_register}。
+    但是，由于我在具体实现的时候，部分操作还没有调通，从 BCM54213PE PHY 芯片所返回的状态检查一直
+    显示当前链路状态未建立，查阅了全部可能有关的状态寄存器，仍然无法明确具体这种情况是由什么原因导致的。
+    好在功夫不负有心人，查阅的时候发现有一个仓库名为 rpi4-rust-workspace \cite{rpi4-rust-workspace}，
+    在这个20年的仓库中提供了一个相较于我实现更为完善的以太网卡驱动，只不过由于仓库维护者太久没有进行维护，
+    在仓库中所引用的很多 rust 语言的方法没有办法在 ArceOS 所支持的 rust 工具链中正常运行。
+    同时，仓库中也存在着很多由于维护者直接将 rpi3 版本中寄存器复制到 rpi4 版本中所出现的问题，比如说在
+    UART 所牵涉到的 GPIO 部分\footnote{根据FPM383C模块说明，必须要在Rx设定上拉电阻}，维护者直接将在
+    rpi3(bcm2835) 使用的 GPIO Pull-up/down Register 也就是 GPPUD 寄存器等规约复制到了 rpi4(bcm2711)
+    中。\cite{raspberry-pi-bcm2835}但是，树莓派 4 中采用了另外的一组寄存器来控制上拉下拉电阻 
+    GPIO\_PUP\_PDN\_CNTRL\_REG0，二者类型不同，起始地址也不同。
+
+    \begin{lstlisting}[language=Rust
+        , caption={tock register 包装}
+        , label={code::tock_register}
+        ]
+        register_structs! {
+            Channel {
+                (0x00 => CS: ReadWrite<u32, CS::Register>),
+                (0x04 => CONBLK: ReadWrite<u32, CONBLK::Register>),
+                (0x08 => TI: ReadWrite<u32, TI::Register>),
+                (0x0c => S_AD: ReadWrite<u32, S_AD::Register>),
+                (0x10 => D_AD: ReadWrite<u32, D_AD::Register>),
+                ...
+            },
+        } ...
+        register_bitfields! { u32,
+        CS [ // Control and Status registers
+            RESET OFFSET(31) NUMBITS(1),
+            ABORT OFFSET(30) NUMBITS(1),
+            DISDEBUG OFFSET(29) NUMBITS(1),
+            WAIT_FOR_OUTS_TANDING_WRITES OFFSET(28) NUMBITS(1),
+            PANIC_PRIORITY OFFSET(20) NUMBITS(3),
+            PRIORITY OFFSET(16) NUMBITS(4),
+            ...
+        ], CS_DMA4 [ ... ] ...}
+    \end{lstlisting}
+
+    在进行了大量的适配以及检查之后，在树莓派层面上成功完成了收发以太网数据帧的操作。
+
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[scale=0.3]{./imgs/树莓派通信正常.jpg}
+        \caption{树莓派通信正常}    \label{fig::树莓派通信正常}
+    \end{figure}
+
+    % TODO: 考虑添加图片说明这个过程
+
+
 
     % TODO: 后面看是用我自己的驱动还是直接用现成的
 

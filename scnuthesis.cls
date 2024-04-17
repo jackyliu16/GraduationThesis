@@ -359,3 +359,56 @@
     tabsize=2,
     language=C
 }
+
+% \lstdefinelanguage{Rust}{
+%     morekeywords={abstract,alignof,as,async,await,box,do,const,continue,false,final,fn,for,if,impl,in,let,loop,macro,match,mod,move,mut,offsetof,override,priv,pub,ref,return,self,Self,static,struct,super,trait,true,type,typeof,unsafe,unsized,use,extern,yield},
+%     sensitive=true,
+%     morecomment=[l]{//},
+%     morecomment=[s]{/*}{*/},
+%     morestring=[b]",
+%     morestring=[b]',
+%     morestring=[s]{r#"}{"#},
+% }
+
+\lstdefinelanguage{Rust}{
+  % Anything betweeen $ becomes LaTeX math mode
+  mathescape=false,
+  % Comments may or not include Latex commands
+  texcl=false,
+  keywords=[1]{inherit,import,if,then,else,false,true,or,rec,let,in,assert,with},
+  % Comments delimiters, we do turn this off for the manual
+  comment=[l]{\#},
+  morecomment=[s]{/*}{*/},
+  % Spaces are not displayed as a special character
+  showstringspaces=false,
+  % String delimiters
+  morestring=[b]",
+  morestring=[d]'',
+  % Size of tabulations
+  tabsize=2,
+  % Enables ASCII chars 128 to 255
+  extendedchars=false,
+  % Case sensitivity
+  sensitive=true,
+  % Automatic breaking of long lines
+  breaklines=false,
+  % Default style for listings
+  % basicstyle=\small\ttfamily,
+  basicstyle=\footnotesize\ttfamily,
+  % Position of captions is bottom
+  captionpos=b,
+  % flexible columns
+  columns=[l]fixed,
+  % Style for (listings') identifiers
+  identifierstyle={\ttfamily\color{identifiercolor}},
+  % Style for declaration keywords
+  keywordstyle={\bfseries},
+  % Style for strings
+  stringstyle={\ttfamily\color{stringcolor}},
+  % Style for comments
+  commentstyle={\ttfamily\color{commentcolor}},
+  numbers=left,
+  % frame=single,
+  keywordstyle=\color{blue},
+  commentstyle=\color{green},
+}[keywords,comments,strings]
