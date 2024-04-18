@@ -1,4 +1,5 @@
 {
+    "editor.minimap.enabled": false,
     "latex-workshop.latex.autoBuild.run": "onFileChange",
     "latex-workshop.latex.autoClean.run": "onBuilt",
     "latex-workshop.latex.watch.pdf.delay": 100,

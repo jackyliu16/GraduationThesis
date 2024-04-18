@@ -206,16 +206,6 @@ for (i = 0; i < priv->hw_params->rx_queues; i++) { // 初始化函数
     中进行的参考，只不过是根据 tock-registers 有界寄存器规约，将原本 u-boot 中存在的大量由
     宏或者裸地址进行声明的地址位置转变成为了 rust 语言下的定义，并且利用其边界检查等功能，进一步的
     保证了寄存器的操作的安全性，同时也提供了更加符合人体工学的寄存器操作\ref{tock_register}。
-    但是，由于我在具体实现的时候，部分操作还没有调通，从 BCM54213PE PHY 芯片所返回的状态检查一直
-    显示当前链路状态未建立，查阅了全部可能有关的状态寄存器，仍然无法明确具体这种情况是由什么原因导致的。
-    好在功夫不负有心人，查阅的时候发现有一个仓库名为 rpi4-rust-workspace \cite{rpi4-rust-workspace}，
-    在这个20年的仓库中提供了一个相较于我实现更为完善的以太网卡驱动，只不过由于仓库维护者太久没有进行维护，
-    在仓库中所引用的很多 rust 语言的方法没有办法在 ArceOS 所支持的 rust 工具链中正常运行。
-    同时，仓库中也存在着很多由于维护者直接将 rpi3 版本中寄存器复制到 rpi4 版本中所出现的问题，比如说在
-    UART 所牵涉到的 GPIO 部分\footnote{根据FPM383C模块说明，必须要在Rx设定上拉电阻}，维护者直接将在
-    rpi3(bcm2835) 使用的 GPIO Pull-up/down Register 也就是 GPPUD 寄存器等规约复制到了 rpi4(bcm2711)
-    中。\cite{raspberry-pi-bcm2835}但是，树莓派 4 中采用了另外的一组寄存器来控制上拉下拉电阻 
-    GPIO\_PUP\_PDN\_CNTRL\_REG0，二者类型不同，起始地址也不同。
 
     \begin{lstlisting}[language=Rust
         , caption={tock register 包装}
@@ -268,7 +258,7 @@ for (i = 0; i < priv->hw_params->rx_queues; i++) { // 初始化函数
     且设置为相同值，就比如说当前指纹模块与树莓派主控模块之间采用的是57600Bps，就相当于在信号线上进行通信的时候，每个信号占据 1/57600 s。
 
     在信号线上没有进行传输的时候，信号线上保持高电平。在传输开始时，发送端会特地给一个低电平作为传输开始标记
-    接受端收到了这个信号之后根据前面规定的每隔 1/波特率 秒对于信号线电平进行采样，将电平信号转换成为实际的字符。
+    接受端收到了这个信号之后根据前面规定的每隔 (1/波特率) 秒对于信号线电平进行采样，将八个电平信号转换成为实际的字节数据。
 
     \begin{figure}[ht]
         \centering
@@ -338,9 +328,41 @@ for (i = 0; i < priv->hw_params->rx_queues; i++) { // 初始化函数
     我参照 2020 年 jonlamb-gh rpi4-rust-workspace 仓库\cite{rpi4-rust-workspace}
     提供的基于树莓派 UART 的串口树莓派初始化方案，进行了大量的适应性修改，在原先仅实现了串口收发包的基础上
     实现了对于 FPM383F 通信协议的适配，实现了解析，生成等功能。同时，由于根据上位机中实现指纹注册功能的设计，
-    我同样使用 python 语言在上位机中实现了对应的功能。
+    我同样使用 python 语言在上位机中实现了对应的功能
+    \footnote{没有任何基于py语言的有关实现，唯一一个\href{micropython-HLK-FPM383C}{https://github.com/deerbleats/micropython-HLK-FPM383C}， 是在嵌入式设备上完成的处理工作}。
 
+    具体算法抽象如下：
 
-
-
-
+    \begin{algorithm}[H]
+    \caption{以太网帧解析算法}
+    \label{algorithm::UART}
+    \begin{algorithmic}[1]
+    \Function{parse}{$ser$} 
+        \State $frame\_head \gets [0xF1, 0x1F, 0xE2, 0x2E, 0xB6, 0x6B, 0xA8, 0x8A]$ \Comment{帧头固定}
+        \State $frame\_data \gets$ array of size 256 filled with 0 \Comment{考虑到全局分配，暂时采用数组}
+        \State $len \gets 0$
+        \State $cnt \gets 7$ \Comment{帧头的最后一个元素为7}
+        \While{true}
+            \State $data \gets$ read one byte from serial port $ser$ \Comment{逐字节读数据}
+            \If{$frame\_data[0:8] \neq frame\_head[:])$}
+                \State $frame\_data[0:8] \gets frame\_data[1:9]$
+                \State $frame\_data[8] \gets 0$ \Comment{清理残余}
+                \State $frame\_data[7] \gets data$
+            \EndIf
+            \If{$frame\_data[0:8] == frame\_head[:]$}
+                \State $frame\_data[cnt] \gets data$
+                \If{$cnt > 11$}
+                    \State $len \gets$ convert bytes to integer($frame\_data[8:10]$)
+                \EndIf
+                \State $cnt \gets cnt + 1$
+            \EndIf
+            \If{$len \neq 0$ and $(cnt - 11) == len$} \Comment{确保当前帧的全部数据均已被收集}
+                \State \Return $(len, frame\_data[11:cnt])$ 
+                \Comment{这是一个简单抽象，对应到上/下位机有不同实现}
+            \EndIf
+        \EndWhile
+    \EndFunction
+    \end{algorithmic}
+    \end{algorithm}
+    
+    考虑到串口中可能存在串扰数据等因素导致的乱码或者是    

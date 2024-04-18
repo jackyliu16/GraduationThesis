@@ -412,3 +412,48 @@
   keywordstyle=\color{blue},
   commentstyle=\color{green},
 }[keywords,comments,strings]
+
+\lstdefinelanguage{Pseudocode}{
+  % Anything betweeen $ becomes LaTeX math mode
+  mathescape=false,
+  % Comments may or not include Latex commands
+  texcl=false,
+  keywords=[1]{function,loop,if,else,return,while},
+  % Comments delimiters, we do turn this off for the manual
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  % Spaces are not displayed as a special character
+  showstringspaces=false,
+  % String delimiters
+  morestring=[b]",
+  morestring=[d]'',
+  % Size of tabulations
+  tabsize=2,
+  % Enables ASCII chars 128 to 255
+  extendedchars=false,
+  % Case sensitivity
+  sensitive=true,
+  % Automatic breaking of long lines
+  breaklines=false,
+  % Default style for listings
+  % basicstyle=\small\ttfamily,
+  basicstyle=\footnotesize\ttfamily,
+  % Position of captions is bottom
+  captionpos=b,
+  % flexible columns
+  columns=[l]fixed,
+  % Style for (listings') identifiers
+  identifierstyle={\ttfamily\color{black}},
+  % Style for declaration keywords
+  keywordstyle={\bfseries\color{blue}},
+  % Style for strings
+  stringstyle={\ttfamily\color{orange}},
+  % Style for comments
+  commentstyle={\ttfamily\color{green}},
+  numbers=left,
+  % frame=single,
+}[keywords,comments,strings]
+
+% algpseudocode 
+\usepackage{algpseudocodex}
+\usepackage{algorithm}
