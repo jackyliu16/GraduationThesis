@@ -43,7 +43,7 @@ FPM383F识别指纹模块功耗低半导体面阵传感器是一款低功耗的�
         \item 指纹采集模块：
             本模块使用了现成的串口通信指纹识别模块予以完成。
         \item 网络通信模块：
-            本模块主要使用了现有的树莓派板载 PHY 芯片 BCM54213PE 与 ENC28J60 外接网卡模块实现了对应的功能，同时
+            本模块主要使用了现有的树莓派板载 PHY 芯片 BCM54213PE 实现了对应的功能，同时
             还提供了串口替代的 USB 通信方法。
     \end{itemize}
 
@@ -58,4 +58,54 @@ FPM383F识别指纹模块功耗低半导体面阵传感器是一款低功耗的�
     在上位机中通过简易的 python 客户端程序，对于嵌入式设备中传输的 UDP 包进行分析，实现基于 Sqlite 数据库的简单指纹信息 CRUD，打卡数据 CRUD，
     与一个基于命令行实现的打卡记录查询与导出应用程序。
 
+    \begin{description}
+        \item[指纹注册] 由上位机中自动完成指纹注册，通过上传命令，获取对应ID的指纹特征信息并以UDP包的形式下发到下位机中的指纹模块。
+        
+        指纹注册功能主要在上位机中完成，这主要是考量到在 HR 处实现人事登记等操作
+        更加合乎一般企业的考勤流程。
+        
+        通过 0x0118 命令\ref{uart::auto-register}，实现自动注册功能，该命令会自动完成采图、提取、拼接、保存等操作，
+        在这个部分，通过对于回返包中 ID 以及注册进度的指示，在注册进度达到 0x64 时终止注册流程。
+
+        \begin{table}[htbp]
+            \resizebox{\textwidth}{!}{%
+                \begin{tabular}{|l|l|l|l|l|l|l|l|}
+                \hline
+                \multicolumn{1}{|c|}{校验密码} & CMD类型 & CMD号 & 等待手指 & 按压次数 & ID\_H & ID\_L & 校验和  \\ \hline
+                0x00 0x00 0x00 0x00        & 0x01  & 0x18 & 0x01 & 0x06 & 0xFF  & 0xFF  & 0xE2 \\ \hline
+                \end{tabular}
+            }
+            \caption{自动注册命令用户层帧} \label{uart::auto-register}
+        \end{table}
+
+        在注册完成之后，通过上载命令\ref{uart::upload-info}，向指纹模块获取特定 ID 号的指纹特征信息长度，
+        然后再通过 \ref{uart::upload-data} 命令，从指纹模块获取对应分片的指纹特征信息。
+        在将信息存储到数据库的同时，还通过 UDP 包的形式，将对应的数据发送到树莓派，树莓派再将对应指纹特征信息
+        下载到树莓派对应的指纹模块上，由此完成了一次标准的指纹注册功能。
+
+        \begin{table}[htbp]
+            \resizebox{\textwidth}{!}{%
+                \begin{tabular}{|l|l|l|l|l|l|}
+                \hline
+                \multicolumn{1}{|c|}{校验密码} & CMD类型 & CMD号 & ID\_H & ID\_L & 校验和  \\ \hline
+                0x00 0x00 0x00 0x00        & 0x01  & 0x53 & 0x00  & 0x01  & 0xAB \\ \hline
+                \end{tabular}
+            } \caption{获取上传信息命令用户层帧} \label{uart::upload-info}
+        \end{table}
+
+        \begin{table}[htbp]
+            \resizebox{\textwidth}{!}{%
+            \begin{tabular}{|l|l|l|l|l|l|l|l|}
+                \hline
+                \multicolumn{1}{|c|}{校验密码} & CMD类型 & CMD号 & ID\_H & ID\_L & NUM\_H & NUM\_L & 校验和  \\ \hline
+                0x00 0x00 0x00 0x00        & 0x01  & 0x51 & 0xFF  & 0xFF  & 0x00   & 0x00   & 0xAC \\ \hline
+                \end{tabular}
+            } \caption{获取指纹特征命令用户层帧} \label{uart::upload-data}
+        \end{table}
+
+        \item[指纹删除] Detailed explanation of functionality 2.
+        \item[指纹考勤登记] Detailed explanation of functionality 3.
+        \item[考勤记录读取] Detailed explanation of functionality 3.
+    \end{description}
+      
 
