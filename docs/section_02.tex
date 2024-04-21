@@ -64,6 +64,8 @@ FPM383F识别指纹模块功耗低半导体面阵传感器是一款低功耗的�
     在上位机中通过简易的 python 客户端程序，对于嵌入式设备中传输的 UDP 包进行分析，实现基于 Sqlite 数据库的简单指纹信息 CRUD，打卡数据 CRUD，
     与一个基于命令行实现的打卡记录查询与导出应用程序。
 
+    \subsubsection{功能说明}
+
     \begin{description}
         \item[指纹注册] 由上位机中自动完成指纹注册，通过上传命令，获取对应ID的指纹特征信息并以UDP包的形式下发到下位机中的指纹模块。
         
@@ -109,9 +111,55 @@ FPM383F识别指纹模块功耗低半导体面阵传感器是一款低功耗的�
             } \caption{获取指纹特征命令用户层帧} \label{uart::upload-data}
         \end{table}
 
-        \item[指纹删除] Detailed explanation of functionality 2.
-        \item[指纹考勤登记] Detailed explanation of functionality 3.
-        \item[考勤记录读取] Detailed explanation of functionality 3.
+        \item[指纹删除] 在上位机中完成指纹删除操作，通过下行 Udp 包，删除指纹模块中对应 ID 的指纹特征信息。
+        
+        指纹删除功能主要在上位机中完成，在出现指纹出现问题的时候，由 HR 执行运行函数，自动化删除数据库中员工对应的指纹特征编号，
+        同时将删除指纹特征编号的命令通过下面的指令\ref{指纹特征清除}经由树莓派下发到指纹终端，根据不同的需求，在下面的帧中配置不同的格式。
+
+        \begin{table}[ht]
+            \resizebox{\textwidth}{!}{%
+                \begin{tabular}{|l|l|l|l|l|l|l|}
+                \hline
+                \multicolumn{1}{|c|}{校验密码} & CMD类型 & CMD号 & CL\_FLAG & ID\_H & ID\_L & 校验和  \\ \hline
+                0x00 0x00 0x00 0x00        & 0x01  & 0x51 & 03       & 0xFF  & 0xFF  & 0xAC \\ \hline
+                \end{tabular} 
+            } \caption{指纹特征清除} \label{指纹特征清除}
+        \end{table}
+
+        \item[指纹考勤登记] 在下位机从属指纹模块中完成基于指纹的考勤实现。
+        
+        下位机会循环的向指纹模块询问指纹能否匹配\ref{询问是否匹配}，并按照匹配应答包\ref{匹配应答包}格式返回对应结果，
+        根据对应的匹配分数以及是否完成匹配。
+
+        当当前指纹被实际判断匹配成功，对应的数据就会被放在下面的帧结构中，再通过 UdpSocket 发送到上位机的 Socket，
+        上位机中利用 Python Socket 对于 5555 端口进行长期监听，对所有监听到的数据包进行匹配，当前后帧结构一致的情况下
+        将其中包含的 ID 按照 sqlite 的规定插入到对应表中
+        \footnote{sqlite中有一种名为 CURRENT\_TIMESTAMP 的默认属性，会默认将插入项的时间作为一个元素一起插入}。
+
+        \begin{table}[htbp]
+            \resizebox{\textwidth}{!}{%
+                \begin{tabular}{|l|l|l|l|}
+                \hline
+                \multicolumn{1}{|c|}{校验密码} & CMD类型 & CMD号    & 校验和  \\ \hline
+                0x00 0x00 0x00 0x00        & 0x01  & 0x21 / 0x22 & 0xAC \\ \hline
+                \end{tabular}
+            }  \caption{询问是否匹配，查询匹配结果} \label{询问是否匹配}
+        \end{table}
+
+        \begin{table}[htbp]
+            \resizebox{\textwidth}{!}{%
+                \begin{tabular}{|l|l|l|l|l|l|l|l|}
+                \hline
+                \multicolumn{1}{|c|}{校验密码} & CMD类型 & CMD号 & 错误码                 & 匹配结果      & 匹配分数      & 匹配ID      & 校验和  \\ \hline
+                0 0 0 0        & 0x01  & 0x51 & 0 0 0 0 & 0x00 0x01 & 0x27 0x0F & 0x00 0x03 & 0xAC \\ \hline
+                \end{tabular} 
+            }  \caption{匹配应答包格式} \label{匹配应答包}
+        \end{table}
+
+        \item[考勤记录读取] 根据一般企事业单位的考勤系统的历史发展来看，读取员工考勤记录属于考勤系统的必备功能。
+        
+        本功能主要实现在上位机处，由上位机调用函数对于原先保存在sqlite中的考勤打卡表与员工-指纹特征对应表进行自动关联，并且
+        基于一定的逻辑分析打印出员工的详细打卡数据与月度打卡数据。
     \end{description}
       
 
