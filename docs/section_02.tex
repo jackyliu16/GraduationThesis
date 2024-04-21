@@ -18,15 +18,32 @@
     \caption{总体设计图}    \label{overall_design}
 \end{figure}
 
-\subsubsection{中央处理芯片选型}
+\subsubsection{嵌入式开发板选型}
 
-树莓派4B使用的 bcm2711 是一种四核心64位ARM Cortex-A72架构CPU，主频高，能满足多种复杂计算需求以及满足大型程序运行需求。
+树莓派4B\ref{树莓派硬件配置说明图}使用的 bcm2711 是一种四核心64位ARM Cortex-A72架构CPU，主频高，能满足多种复杂计算需求以及满足大型程序运行需求。
 树莓派4B还存在丰富而完善的接口，两个USb3.0接口，两个USB2.0接口，一个千兆网卡接口，一个HDMI接口，一个CSI接口和一个DSI接口，能够满足对于各种外设的连接需求。
 树莓派4B还是树莓派第一个支持不通过 usb 直接访问网卡芯片实现网卡介入的开发板，这无形之中对于实现板载网卡驱动提供了很多帮助。
 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{imgs/树莓派硬件配置说明图.png}
+    \caption{树莓派硬件配置说明图}    \label{树莓派硬件配置说明图}
+\end{figure}
+
 \subsubsection{指纹识别模块选型}
 
-FPM383F识别指纹模块功耗低半导体面阵传感器是一款低功耗的光学指纹识别模块，支持对于60组光学指纹进行存储，其通过串口与中央处理器进行通信，在串口驱动方面，使用我开发的 arm\_gpio 库应当开发难度不难。
+FPM383F识别指纹模块功耗低半导体面阵传感器是一款低功耗的光学指纹识别模块，
+支持对于60组光学指纹进行存储，其通过串口与中央处理器进行通信，
+在串口驱动方面，基于树莓派底层寄存器UART进行调用完成对应信息的发送难度不高。
+
+根据模组规格书，指纹模块在上电之后需要保持至少 180ms 等待才可以正常进行通信，VCC在下电之前要求设置 MCU 串口为输入高阻态，Rx 需要添加上拉电阻等需求，相对较为容易满足。
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[scale=0.6]{imgs/FPM383C串口设备图.png}
+    \caption{FPM383C串口设备图}    \label{FPM383C串口设备图}
+\end{figure}
+
 
 \subsubsection{通信模块选型}
 
