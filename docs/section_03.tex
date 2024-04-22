@@ -214,7 +214,7 @@ for (i = 0; i < priv->hw_params->rx_queues; i++) { // 初始化函数
     同时，由于 BCM54213PE 的相关寄存器手册不对外进行开发，大部分的寄存器操作都是从 u-boot 或者 树莓派linux
     中进行的参考，只不过是根据 tock-registers 有界寄存器规约，将原本 u-boot 中存在的大量由
     宏或者裸地址进行声明的地址位置转变成为了 rust 语言下的定义，并且利用其边界检查等功能，进一步的
-    保证了寄存器的操作的安全性，同时也提供了更加符合人体工学的寄存器操作\ref{tock_register}。
+    保证了寄存器的操作的安全性，同时也提供了更加符合人体工学的寄存器操作\ref{code::tock_register}。
 
     \begin{lstlisting}[language=Rust
         , caption={tock register 包装}
