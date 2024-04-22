@@ -4,7 +4,7 @@
 
 \subsection{用户需求分析}
 
-    根据现有的各种企事业单位对于考勤打卡的需求，需求的特性主要为特征性识别以及日志记录。
+    根据现有的各种企事业单位对于考勤打卡的需求，在考勤系统中最核心的功能特性是特征性识别和日志记录功能。
     
     因此，在总体设计上我计划采用最简单的由指纹识别模块获取输入，经过 MCU 中简单处理再转发给
     linux 下的控制主机的设计。
@@ -14,21 +14,30 @@
     由于嵌入式开发所基于的 MCU 一般性能相当有限，就算是采用一般 linux 操作系统进行本机编译，其占用时间也会相对比较长，同时，也无法应对一些占用系统内存资源较大的编译场景。
     因此，在嵌入式开发中，一般通过交叉编译的方式实现在 x86\_64-linux 平台或其他通用操作系统架构平台上实现对于目标平台代码的编译以更好的利用硬件资源。
 
-    在本文的实现过程中基于 \href{https://nixos.org/}{Nix} 管理 x86\_64-linux 平台实现了对 aarch64-unknown-linux 目标平台的编译，其中主要的编译工具链的部分直接采用原有 \href{https://github.com/rcore-os/arceos}{ArceOS} 操作系统实现的 Rust 语言交叉编译以及镜像处理步骤，将 Cargo 包管理工具直接生成的裸机 elf 文件通过 rust-objcopy 去除其中一些无关的信息，如调试信息等内容成为一个纯粹的二进制文件。 
+    在本文的实现过程中基于 \href{https://nixos.org/}{Nix} 管理 x86\_64-linux 平台实现了对 aarch64-unknown-linux 目标平台的编译，
+    其中主要的编译工具链的部分直接采用原有 \href{https://github.com/rcore-os/arceos}{ArceOS} 操作系统实现的 Rust 语言交叉编译以及镜像处理步骤
+    ，将 Cargo 包管理工具直接生成的裸机 elf 文件通过 rust-objcopy 去除其中如调试信息等无关内容成为一个纯粹的二进制文件。 
   
-    一般树莓派的流程由 保存在 Soc ROM 区中的 booloader 完成 SD 卡上 FAT32 分区的挂载以及加载第二阶段 bootcode.bin，但是由于我使用的树莓派4B (bcm2711) 相对于前代有不少的硬件更新，在我使用的树莓派中对应初始化，启用 GPU fireware 加载 start.elf 的 bootloader 代码都被实现在 EEPROM 中，以提升 ROM 代码的容错性。 
-    在运行 start4.elf 文件时，其会对 sd 卡中的 config.txt 文件进行解析，完成对应如串口传输频率，是否启用 JTAG 调试等配置，还会将其中声明的镜像文件加载到内核地址，使 CPU 由 stand-by 状态开始执行内核初始化代码。
+    通常，树莓派启动流程开始于 Soc ROM 区中的 bootloader, 他负责挂在位于 SD 卡上的 FAT32 分区，并加载第二阶段的 bootcode.bin 文件。但是在本次采用的树莓派4B (bcm2711) 
+    相对于前代有不少的硬件更新，其中中对应初始化，启用 GPU fireware 加载 start.elf 的 bootloader 代码都被实现在 EEPROM 中。
+    在运行 start4.elf 文件时，其会对 sd 卡中的 config.txt 文件进行解析，完成对应如串口传输频率，是否启用 JTAG 调试等配置，
+    还会将其中声明的镜像文件加载到内核默认加载地址地址，使 CPU 由 stand-by 状态开始执行内核初始化代码。
 
-    在我开发的过程中参照 \href{https://github.com/rust-embedded/rust-raspberrypi-OS-tutorials}{rust-raspberrypi-OS-tutorials} 的串口传输工具完成了串口传输的配置。其中通过实现一个最小配置内核，实现了初始化对应端口（PIN 14,15）的替代方法声明以启动对应端口的传输声明。同时通过CH304 USB 转 TTL 串口传输模块发送开始传输信号给开发机中 Ruby 运行的应用程序，应用程序将内核镜像文件通过串口传输到树莓派4B内存中以完成镜像加载。最终最小配置内核将控权转交给内核镜像文件。
+    在我开发的过程中参照 \href{https://github.com/rust-embedded/rust-raspberrypi-OS-tutorials}{rust-raspberrypi-OS-tutorials} 
+    的串口传输工具完成了串口传输的配置。其中通过实现一个最小配置内核，实现了初始化对应端口（PIN 14,15）的替代方法声明以启动对应端口的传输声明。
+    同时通过 CH340 USB 转 TTL 串口传输模块发送开始传输信号给开发机中 Ruby 运行的应用程序，应用程序将内核镜像文件通过串口传输到树莓派4B内存中以完成镜像加载。
+    最终最小配置内核将控权转交给内核镜像文件，来配置基础的，基于串口传输的二进制镜像文件传输配置。
 
     \subsubsection{基于 Nix 构建可重构开发环境}
 
-    作为一个标准开发操作系统的开发环境，必然是需要在同组内保持一定程度上的可重构性，易重构性以及同步性。基于这几种考量，我选用了 \href{https://nixos.org/}{Nix} flakes 对于项目整体依赖进行管理。就目前来看，除了对于使用到其他项目中的 docker 的部分，由于在 Non-NixOS 中，Nix 无法介入 systemctl 的管理而存在一定的不一致情况以及由于 WSL 对于串口设备连接的限制\footnote{在WSL中连接串口设备的时候，需要额外安装 usbipd}，其他的部分表现良好，均能很好的在 WSL, NixOS, Debian 等常用开发系统中构建一致，可用的开发环境。
+    基于开发环境一贯的可重构性，易重构性，同步性的需求的考量，我选用了 \href{https://nixos.org/}{Nix} flakes 对于项目整体依赖进行管理。
+    就目前来看，除了对于使用到其他项目中的 docker 的部分，由于在 Non-NixOS 中，Nix 无法介入 systemctl 的管理而存在一定的不一致情况以及由于 WSL 对于串口设备连接的限制
+    \footnote{在WSL中连接串口设备的时候，需要额外安装 usbipd}，其他的部分表现良好，均能很好的在 WSL, NixOS, Debian 等常用开发系统中构建一致，可用的开发环境。
 
-    % 具体在实现过程中，我通过 flakes.inputs 固定了后面引用的 Nixpkgs, rust-overlays 库。
-    % 同时，使用 overlays 在原先 nixpkgs 上掩盖了我自己的派生以保证开发环境构建的一致性。
-    % 在代码段\ref{nix-flake-overlays} 第 7-10 行实现了对于 rust nightly toolchain 的固定，
-    % 在后文 11-17 行实现了对于 nixpkgs 特定版本 qemu 的选择，在 18-21 行实现了对于联网获取的编译工具链的固定。
+    具体在实现过程中，我通过 flakes.inputs 固定了后面引用的 Nixpkgs, rust-overlays 库。
+    同时，使用 overlays 在原先 nixpkgs 上掩盖了我自己的派生以保证开发环境构建的一致性。
+    在代码段\ref{nix-flake-overlays} 第 7-10 行实现了对于 rust nightly toolchain 的固定，
+    在后文 11-17 行实现了对于 nixpkgs 特定版本 qemu 的选择，在 18-21 行实现了对于联网获取的编译工具链的固定。
     
     \begin{lstlisting}[language=nix
         , caption=my flakes
@@ -60,7 +69,7 @@ overlays = [
     })
     \end{lstlisting}
 
-    同时，为了保证引入的工具链能完整的运行，我根据 \href{}{nixpkgs} 中提出的 issue，对于部分存在的问题进行了修复。
+    同时，为了保证引入的工具链能完整的运行，我根据 \href{https://github.com/nixos/nixpkgs}{nixpkgs} 中提出的 issue，对于部分存在的问题进行了修复。
 
     \begin{lstlisting}[language=nix
         , caption=flakes 特殊适配
