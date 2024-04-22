@@ -232,7 +232,7 @@
     \vspace*{2\ccwd}
   
     \centering
-    \includegraphics[scale=0.6]{./imgs/south_china_normal_university_icon.jpg}
+    \includegraphics[width=\textwidth]{./imgs/south_china_normal_university_icon.jpg}
     \centering
     \zihao{-0}\textbf{\songti{毕\hphantom{空}业\hphantom{空}论\hphantom{空}文}}
     \vspace{0.6cm}
