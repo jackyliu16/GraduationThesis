@@ -57,7 +57,13 @@ FPM383F识别指纹模块功耗低半导体面阵传感器是一款低功耗的�
 
 \subsection{硬件设计}
 
-    由于本实现相对来说比较轻量化，不太需要外部模块的支持，因此只是在面包板上完成了对应的实现，并没有画对应的板子。
+    由于本实现相对来说比较轻量化，不太需要外部模块的支持\ref{外部模块接线图}，因此只通过杜邦线进行连接，并没有画对应的板子。
+
+    \begin{figure}[ht]
+    \centering
+    \includegraphics[scale=0.6]{imgs/接线图.png}
+    \caption{外部模块接线说明图}    \label{外部模块接线图}
+    \end{figure}
 
     \begin{itemize}
         \item 信号回返模块：
@@ -81,6 +87,62 @@ FPM383F识别指纹模块功耗低半导体面阵传感器是一款低功耗的�
     在上位机中通过简易的 python 客户端程序，对于嵌入式设备中传输的 UDP 包进行分析，实现基于 Sqlite 数据库的简单指纹信息 CRUD，打卡数据 CRUD，
     与一个基于命令行实现的打卡记录查询与导出应用程序。
 
+    \subsubsection{嵌入式软件设计}
+
+    \begin{algorithm}[H]
+        \caption{指纹识别与网络通信处理}
+        \label{algorithm::fingerprint_network_comm}
+        \begin{algorithmic}[1]
+        \While{true} \Comment{无限循环处理事件}
+            \State \Call{LogDebug}{"===================================="}
+            \State \textbf{try} \Call{ReceiveData}{$socket, \& buf$}
+            \If{\Call{Receive}{$socket, \& buf$} = Ok$(size, addr)$}
+                \State $buf \gets [0; 1024]$ \Comment{重置缓冲区}
+            \ElsIf{\textbf{error} = WouldBlock}
+                \State \textbf{continue}
+            \Else
+                \State \Call{LogDebug}{\textbf{error}}
+            \EndIf
+            \State \Call{LogDebug}{"AAA"}
+        
+            \For{$item$ \textbf{in} $fpm383c::SEARCH\_FINGERPRINT\_MATCH\_START$}
+                \State \Call{Write}{$serial, item$}
+            \EndFor
+            \State \Call{Delay}{10}
+            \State \Call{GetFrame}{$serial$}
+            
+            \For{$item$ \textbf{in} $fpm383c::CHECK\_FINGERPRINT\_MATCH\_RESULT$}
+                \State \Call{Write}{$serial, item$}
+            \EndFor
+        
+            \If{$frame \gets$ \Call{GetFrame}{$serial$}}
+                \State \Call{Assert}{$frame$, CmdType::CheckMatchFingerprint}
+                \State $data \gets$ \Call{GetAllUsersData}{$frame$}
+                \State \Call{LogDebug}{"data: $data$"}
+                \State $data \gets$ \Call{GetUserData}{$frame, 0, 2$}
+                
+                \If{\Call{Any}{$data, \neq 0$}}
+                    \State \textbf{initialize} $sign\_in\_buf \gets [0x46, 0x69, \ldots, 0x20]$
+                    \State \Call{SetSignInData}{$frame, sign\_in\_buf$}
+                    \State \Call{SendTo}{$local\_socket, sign\_in\_buf, TARGET\_IP, TARGET\_PORT$}
+                    \For{$item$ \textbf{in} $fpm383c::SLICE\_OF\_GREENFLASHING\_MODE$}
+                        \State \Call{Write}{$serial, item$}
+                    \EndFor
+                \Else
+                    \For{$item$ \textbf{in} $fpm383c::SLICE\_OF\_REDFLASHING\_MODE$}
+                        \State \Call{Write}{$serial, item$}
+                    \EndFor
+                \EndIf
+                \State \Call{GetFrame}{$serial$}
+                \State \Call{Delay}{10}
+            \EndIf
+        \EndWhile
+        \end{algorithmic}
+        \end{algorithm}
+        
+
+    \subsubsection{数据库设计}
+
     \subsubsection{功能说明}
 
     \begin{description}
@@ -90,7 +152,7 @@ FPM383F识别指纹模块功耗低半导体面阵传感器是一款低功耗的�
         更加合乎一般企业的考勤流程。
         
         通过 0x0118 命令\ref{uart::auto-register}，实现自动注册功能，该命令会自动完成采图、提取、拼接、保存等操作，
-        在这个部分，通过对于回返包中 ID 以及注册进度的指示，在注册进度达到 0x64 时终止注册流程。
+        该部分通过分析返回包中的ID和注册进度进行操作，在注册进度达到 0x64 时终止注册流程。
 
         \begin{table}[htbp]
             \resizebox{\textwidth}{!}{%
