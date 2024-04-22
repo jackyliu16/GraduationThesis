@@ -89,52 +89,45 @@ FPM383F识别指纹模块功耗低半导体面阵传感器是一款低功耗的�
 
     \subsubsection{嵌入式软件设计}
 
+    参照一般嵌入式考勤打卡设备的标准结构，我设计的嵌入式应用在完成对应变量初始化之后维持在一个主循环中运行。
+    一次循环包括收网络包\footnote{匹配帧头后向指纹模块下发对应UART包实现下载，删除指纹特征的效果}
+    ，执行指纹匹配命令，对于指纹匹配结果进行查询，并在完成匹配时通过网络向上位机以特定的帧形式发送网络包告知其
+    已经收到用户的打卡信息。
+
     \begin{algorithm}[H]
-        \caption{指纹识别与网络通信处理}
+        \caption{嵌入式设备主循环}
         \label{algorithm::fingerprint_network_comm}
         \begin{algorithmic}[1]
-        \While{true} \Comment{无限循环处理事件}
-            \State \Call{LogDebug}{"===================================="}
-            \State \textbf{try} \Call{ReceiveData}{$socket, \& buf$}
-            \If{\Call{Receive}{$socket, \& buf$} = Ok$(size, addr)$}
+        \While{true} \Comment{嵌入式设备主循环事件}
+            % \State \textbf{try} \Call{ReceiveData}{$socket, \& buf$}
+            \If{\Call{Receive}{$socket, \& buf$} = Ok$(size, addr)$} \Comment{收到了网络包}
+                \If{收包结果与特定帧头匹配}
+                    \State 将对应 UART 帧转发给从属指纹识别模块
+                \EndIf
                 \State $buf \gets [0; 1024]$ \Comment{重置缓冲区}
             \ElsIf{\textbf{error} = WouldBlock}
-                \State \textbf{continue}
+                \State \textbf{continue} \Comment{如果资源忙，忽略并继续}
             \Else
-                \State \Call{LogDebug}{\textbf{error}}
+                \State \Call{LogDebug}{\textbf{error}} \Comment{打印其他错误}
             \EndIf
-            \State \Call{LogDebug}{"AAA"}
         
-            \For{$item$ \textbf{in} $fpm383c::SEARCH\_FINGERPRINT\_MATCH\_START$}
-                \State \Call{Write}{$serial, item$}
-            \EndFor
-            \State \Call{Delay}{10}
-            \State \Call{GetFrame}{$serial$}
+            \State \Call{Write}{serial, \text{search\_fingerprint\_match\_pattern}} \Comment{向设备发送匹配命令}
+
+            \State \Call{Delay}{10} \Comment{等待模块进行指纹匹配}
+            \State \Call{GetFrame}{$serial$} \Comment{处理返回帧}
             
-            \For{$item$ \textbf{in} $fpm383c::CHECK\_FINGERPRINT\_MATCH\_RESULT$}
-                \State \Call{Write}{$serial, item$}
-            \EndFor
+            \State \Call{Write}{serial, \text{check\_match\_\_result\_pattern}} \Comment{向设备发送匹配命令}
         
-            \If{$frame \gets$ \Call{GetFrame}{$serial$}}
-                \State \Call{Assert}{$frame$, CmdType::CheckMatchFingerprint}
-                \State $data \gets$ \Call{GetAllUsersData}{$frame$}
-                \State \Call{LogDebug}{"data: $data$"}
-                \State $data \gets$ \Call{GetUserData}{$frame, 0, 2$}
+            \If{$frame \gets$ \Call{GetFrame}{$serial$}}  \Comment{对于返回包进行分析}
+                \State \Call{Assert}{$frame$, CmdType::CheckMatchFingerprint} \Comment{确保应答包一致}
                 
                 \If{\Call{Any}{$data, \neq 0$}}
-                    \State \textbf{initialize} $sign\_in\_buf \gets [0x46, 0x69, \ldots, 0x20]$
-                    \State \Call{SetSignInData}{$frame, sign\_in\_buf$}
-                    \State \Call{SendTo}{$local\_socket, sign\_in\_buf, TARGET\_IP, TARGET\_PORT$}
-                    \For{$item$ \textbf{in} $fpm383c::SLICE\_OF\_GREENFLASHING\_MODE$}
-                        \State \Call{Write}{$serial, item$}
-                    \EndFor
-                \Else
-                    \For{$item$ \textbf{in} $fpm383c::SLICE\_OF\_REDFLASHING\_MODE$}
-                        \State \Call{Write}{$serial, item$}
-                    \EndFor
+                    \State \textbf{initialize} $sign\_in\_buf \gets [0x46, 0x69, \ldots, 0x20]$ \Comment{网络包}
+                    \State \Call{SetSignInData}{$frame, sign\_in\_buf$} \Comment{根据应答包设置 buf 中与ID部分}
+                    \State \Call{SendTo}{$local\_socket, sign\_in\_buf, target\_socket$}
+                    \State \Call{Write}{serial, \text{green\_flashing\_pattern}} \Comment{向设备发送绿灯闪烁}
                 \EndIf
                 \State \Call{GetFrame}{$serial$}
-                \State \Call{Delay}{10}
             \EndIf
         \EndWhile
         \end{algorithmic}
@@ -142,6 +135,73 @@ FPM383F识别指纹模块功耗低半导体面阵传感器是一款低功耗的�
         
 
     \subsubsection{数据库设计}
+
+    由于对应本次嵌入式设计的上位机中的操作需求相对较为简单直白。同时，不同于课堂考勤系统等需要额外的提供很多
+    诸如教学班，教室，教师表的需求，本次嵌入式软件在功能层面仅需要完成简单的考勤打卡记录，指纹特征模块的存储
+    的功能，因此在表实现上仅需要维持三个表的存在，分别是指纹特征表，员工信息表，考勤打卡表。
+
+    因此，在这样的一个简单的的嵌入式项目中使用诸如 Oracle, MySQL, PostgreSQL 等大型企业级数据库是没有效率
+    的行为，在设计中综合考量了一系列如 SQLite， LMDB 等嵌入式常用的数据库，考虑到常用性，库支持程度等因素之后
+    选用了 SQLite 作为嵌入式信息存储的数据库。
+
+    \begin{description}
+        \item[用户信息表] 存储常见的用户信息数据
+
+            在用户信息表\ref{tab:userInfo}中完成对于用户ID，指纹特征信息的存储属于一种最基本的考勤系统嵌入式设计需求。在本表中我将 user\_id 作为主键，唯一性的声明用户的身份，并且将其与唯一对应的指纹信息进行关联，在还引入了指纹特征表的主键 finger\_print\_id 实现级联删除。
+
+            同时，考量到在实际上位机将对应数据下载到嵌入式设备的从属指纹识别模块的时候需要先向
+            其发送一个 指纹特征信息下载 包，在该包中声明本次传输的信息会被装载到哪个指纹特征ID以及传输的指纹特征数据长度，以方便指纹模块根据长度截断数据。在本表中还专门提供了与
+            finger\_print\_id 对应的长度数据。
+
+            \begin{lstlisting}[language=SQL
+                , caption={用户信息表}
+                , label = {tab:userInfo}
+                , breaklines=true
+                , breakatwhitespace=true]
+CREATE TABLE IF NOT EXISTS user (
+    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_name TEXT NOT NULL,
+    finger_print_id INTEGER,
+    finger_print_len INTEGER,
+    other_message TEXT,
+    FOREIGN KEY (finger_print_id) REFERENCES fingerPrint(finger_print_id)
+);
+            \end{lstlisting}
+
+        \item[指纹特征表] 存储指纹 ID，指纹特征长度，指纹特征信息等内容。
+        
+            在指纹特征表\ref{tab:fingerprintInfo}中存储了对应于指纹ID的 frame 号，总数据长度，二进制指纹信息的内容。
+            其中没有如一般操作那样采用指纹ID作为主键，主要是考量到在实际进行发送的时候采用的是分段发送方法，即每次向指纹模块传输数据的时候，除最后一个包外只发送128位长度的指纹特征数据。先在上位机中对于对应指纹特征信息进行组合，然后再存储到 SQLite 中，不仅会导致对于上位机更高的资源占用\footnote{在SQLite中以页的信息存储对应数据}，在实际将特征数据下载到嵌入式设备的从属指纹识别模块的时候同样需要进行切分之后再发送，无疑是增添了许多无异议的工作量，因此最终并没有采用这种形式存储指纹特征数据。而是根据对应对应二进制数据由指纹模块上传到上位机中自带有的 frame 号 对逐帧的数据进行简单的分割。
+
+            \begin{lstlisting}[language=SQL
+                , caption={指纹特征表}
+                , label = {tab:fingerprintInfo}
+                , breaklines=true
+                , breakatwhitespace=true]
+CREATE TABLE IF NOT EXISTS fingerPrint (
+    id INTEGER,
+    frame INTEGER,
+    data BLOB NOT NULL,
+);
+            \end{lstlisting}          
+
+
+        \item[考勤打卡表] 记录考勤打卡的时间信息
+        
+            在考勤打卡表\ref{tab:signIn}中主要保存对应于 user\_id 的打卡数据，其中通过默认CURRENT\_TIMESTAMP的方式自动插入了对应的时间戳数据，方便用户进行插入操作。
+
+            \begin{lstlisting}[language=SQL
+                , caption={考勤打卡表}
+                , label = {tab:signIn}
+                , breaklines=true
+                , breakatwhitespace=true]
+CREATE TABLE IF NOT EXISTS signIn (
+    user_id INTEGER,
+    time TEXT DEFAULT CURRENT_TIMESTAMP
+)
+            \end{lstlisting}    
+
+    \end{description}
 
     \subsubsection{功能说明}
 
@@ -215,7 +275,7 @@ FPM383F识别指纹模块功耗低半导体面阵传感器是一款低功耗的�
         将其中包含的 ID 按照 sqlite 的规定插入到对应表中
         \footnote{sqlite中有一种名为 CURRENT\_TIMESTAMP 的默认属性，会默认将插入项的时间作为一个元素一起插入}。
 
-        \begin{table}[htbp]
+        \begin{table}[ht]
             \resizebox{\textwidth}{!}{%
                 \begin{tabular}{|l|l|l|l|}
                 \hline
@@ -225,7 +285,7 @@ FPM383F识别指纹模块功耗低半导体面阵传感器是一款低功耗的�
             }  \caption{询问是否匹配，查询匹配结果} \label{询问是否匹配}
         \end{table}
 
-        \begin{table}[htbp]
+        \begin{table}[ht]
             \resizebox{\textwidth}{!}{%
                 \begin{tabular}{|l|l|l|l|l|l|l|l|}
                 \hline
@@ -235,6 +295,7 @@ FPM383F识别指纹模块功耗低半导体面阵传感器是一款低功耗的�
             }  \caption{匹配应答包格式} \label{匹配应答包}
         \end{table}
 
+        \newpage
         \item[考勤记录读取] 根据一般企事业单位的考勤系统的历史发展来看，读取员工考勤记录属于考勤系统的必备功能。
         
         本功能主要实现在上位机处，由上位机调用函数对于原先保存在sqlite中的考勤打卡表与员工-指纹特征对应表进行自动关联，并且
