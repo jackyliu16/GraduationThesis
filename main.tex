@@ -27,20 +27,38 @@
 \begin{abstract}
 % TODO check
 \fontsize{15}{20}\selectfont
-随着信息化时代的逐渐发展，各种芯片企业由于芯片制程的缘故，在开发体积更小，更为集中，的芯片上面临了越来越多的问题。
-本文尝试采用一种实验性的操作系统 arceos，利用其类同于 libos 的优秀组合能力，间接利用rust语言零抽象成本的效果，将现有的，
-由设备厂商提供的原始设备驱动如串口指纹驱动与以太网驱动，转写成为 arceos 上能使用的模块化驱动，并尝试将其与一般 RTlinux, RTOS 如 RTThread 等操作系统剪枝后的实现
-进行对比，尝试讨论采用这种新型的操作系统重写现有实现的优劣。
+随着计算机网络安全事件频繁发生，保障底层操作系统的安全性刻不容缓。
+在本次的毕业设计中采用了一种不同于嵌入式程序的传统底层操作系统的 ArceOS 操作系统，
+这种操作系统以 Rust 语言构建，利用语言内置对于安全的保障机制与类 Unikernl, LibOS 设计理念削减攻击面的形式
+在内部高度模块化的基础上实现了更高程度上的安全保障。
+
+本次毕业设计在 ArceOS 这种操作系统平台上完成了常用嵌入式应用 - 考勤打卡系统的开发，其中主要牵涉到如下几个部分的内容：
+基于树莓派硬件的 UART 串口通信驱动实现与 FPM383C UART 通信协议解析，BCM54213PE 网卡驱动开发，
+上位机指纹特征存储与发送、基于 UDP Socket 的考勤记录机制的实现。
+
+通过对ArceOS操作系统的应用开发，不仅验证了其在嵌入式系统中的实用性和安全性，
+也为类似系统提供了一个可靠的参考实现。
+本研究的成功实施，展示了使用Rust语言和现代操作系统理念可以极大地提升嵌入式系统的安全性和效率。
 \keywords{unikernel, arceos, 组件化操作系统，网卡驱动}     % 中文关键词
 \end{abstract}
 
 % 英文摘要
-% \begin{abstractEN}
-% The story takes place on a fictitious continent. An unknown force attacked this world, and darkness swallowed everything, followed by various monster attacks, and the human world was completely destroyed. At the time when hope was about to be shattered,
-% people finally discovered that although these monsters are powerful, they can only exert their full strength in the dark.
-% Although the chances are slim in the light, people still have the power to fight. The surviving people from various places built several giant lighthouses and built gathering places around the lighthouses. In order to maintain this light curtain, the last high wall of mankind, people have to go deep into the dark forest for adventure.
-% \keywordsEN{Dark Forest, Game Design, RPG}       % 英文关键词
-% \end{abstractEN}
+\begin{abstractEN}
+    With the increasing frequency of computer network security incidents, 
+    enhancing the security of underlying operating systems has become urgent. 
+    This graduation project adopts a novel embedded operating system called ArceOS, 
+    which is distinct from traditional embedded operating systems 
+    and is developed using the Rust programming language. 
+    Leveraging Rust's built-in security mechanisms and 
+    inspired by the design philosophies of Unikernel and LibOS, ArceOS significantly reduces potential 
+    attack surfaces through its highly modular internal architecture, 
+    thereby offering an elevated level of security.
+
+    This thesis details the development of a commonly used embedded application - an attendance system - on the ArceOS platform. The project encompasses several critical components, including the implementation of UART serial communication drivers based on Raspberry Pi hardware, parsing of the FPM383C UART communication protocol, development of the BCM54213PE network card driver, and the creation of an upper-level machine fingerprint feature management and storage system, along with an attendance recording mechanism utilizing UDP Sockets.
+
+    In this paper，we study the relationship between the mechanism and the mechanism of transmitting and transmitting the transmitting data.
+    \keywordsEN{Unikernel, ArceOS, Component-based Operating Systems, Network Drivers} % English Keywords
+\end{abstractEN}
 
 % 目录（自动生成）
 \contentpage
