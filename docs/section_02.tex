@@ -2,20 +2,17 @@
 
 \subsection{需求分析与模块选型}
 
-\subsubsection{系统功能需求分析}
-
 根据一般企事业单位对于考勤事务的管理规范，本指纹考勤系统需要实现以下几种功能，通过上位机对于下位机中指纹识别模块保存的指纹信息进行注册与删除，下位机基于前者提供的指纹数据实现基于光学识别的指纹打开签到功能。
 
-\subsubsection{系统方案设计与选型}
-
-根据上述系统功能需求，以树莓派4B所提供的 bcm2711 作为中央处理芯片，指纹考勤系统主要由电源供电模块，声音反馈模块，USB转TTL串口通信模块，网卡模块。
-系统总体设计方案如图2.1所示。
+根据上述系统功能需求，本设计以树莓派 4B 嵌入式开发板所提供的 bcm2711 作为中央处理芯片
+，指纹考勤系统主要由电源供电模块，声音反馈模块，USB转TTL串口通信模块，网卡模块。
+系统总体设计方案如\ref{总体设计图}所示。
 
 % https://www.processon.com/v/65ec0156778cc21034664557
 \begin{figure}[ht]
     \centering
     \includegraphics[width=\textwidth]{imgs/总体设计图.png}
-    \caption{总体设计图}    \label{overall_design}
+    \caption{总体设计图}    \label{总体设计图}
 \end{figure}
 
 \subsubsection{嵌入式开发板选型}
