@@ -210,10 +210,9 @@ for (i = 0; i < priv->hw_params->rx_queues; i++) { // 初始化函数
     \end{lstlisting}
 
     
-    在具体实现层面其实没有什么特殊于前者的，基本上就是按照原先 cvitek 网卡驱动的开发过程进行的开发，
-    同时，由于 BCM54213PE 的相关寄存器手册不对外进行开发，大部分的寄存器操作都是从 u-boot 或者 树莓派linux
-    中进行的参考，只不过是根据 tock-registers 有界寄存器规约，将原本 u-boot 中存在的大量由
-    宏或者裸地址进行声明的地址位置转变成为了 rust 语言下的定义，并且利用其边界检查等功能，进一步的
+    在具体实现层面其实没有什么特殊于前者的，由于 BCM54213PE 的相关寄存器手册不对外公布，大部分的寄存器操作都是
+    从 u-boot 或者 树莓派 linux 中进行的参考，只不过是根据 tock-registers 有界寄存器规约，
+    将原本 u-boot 中存在的大量由宏或者裸地址进行声明的地址位置转变成为了 rust 语言下的定义，并且利用其边界检查等功能，进一步的
     保证了寄存器的操作的安全性，同时也提供了更加符合人体工学的寄存器操作\ref{code::tock_register}。
 
     \begin{lstlisting}[language=Rust
@@ -242,17 +241,44 @@ for (i = 0; i < priv->hw_params->rx_queues; i++) { // 初始化函数
         ], CS_DMA4 [ ... ] ...}
     \end{lstlisting}
 
-    在进行了大量的适配以及检查之后，在树莓派层面上成功完成了收发以太网数据帧的操作。
-
     \begin{figure}[ht]
         \centering
         \includegraphics[scale=0.3]{./imgs/树莓派通信正常.jpg}
         \caption{树莓派通信正常}    \label{fig::树莓派通信正常}
     \end{figure}
 
+    在进行了大量的适配以及检查之后，如上图\ref{fig::树莓派通信正常}所示在树莓派层面上成功完成了收发以太网数据帧的操作。
+            
+    完成基础的以太网帧的收发之后，接下来的操作就是根据现有 Cvitek DWMAC 驱动，利用现有 ArceOS 实现的
+    以太网协议栈
+    \footnote{根据实现要求，在树莓派下位机上实现基于以太网帧直接发送对应数据给指定的物理地址是不利于
+    本设计通过网络进行拓展的（对于单一企业而言，存在多个打卡机属于正常现象），因此必须要能实现基于 Udp 的打卡信息发送功能}
+    ，最终实现一系列的基于 UdpSocket 的包传输。
+
+    \noindent
+    \begin{minipage}[t]{0.40\linewidth}
+            \vspace{0pt}
+            \centering
+            \includegraphics[scale=0.6]{./imgs/ArceOS_网络调用.jpg}
+            \captionof{figure}{ArceOS 网络调用}    \label{fig::ArceOS网络调用}
+        \end{minipage}           
+        \quad
+        \begin{minipage}[t]{0.55\linewidth}
+            \vspace{0pt}
+            \setlength{\parindent}{1em}
+
+            我根据本次毕业设计要求设计的应用程序
+            利用一个名为 AxStd 的类 Rust Std 库间接调用由 arceos\_api 提供的接口。
+            这个设计巧妙的允许了应用程序同时在两种不同的情况\footnote{基于标准 Std 库与在嵌入式板子上基于自带库}
+            下进行调试，此外，接口的实现可以通过功能标签（feature flags）进行切换，以方便切换底层实现以适应不同的需求。
+
+            arceo\_api 接口通过对于底层 axnet 提供的各个不同方法的调用来实现具体的内容，这个模块内部
+            利用 smoltcp 这个现成的以太网调用堆栈，完成以太网协议中网络层、会话层的实现。他在底层依赖于
+            axdriver 内部完成的驱动加载，与 driver\_net 中所应以的 NetDriverOps traits。           
+
+        \end{minipage}
+
     % TODO: 考虑添加图片说明这个过程
-
-
 
     % TODO: 后面看是用我自己的驱动还是直接用现成的
 

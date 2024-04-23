@@ -37,6 +37,7 @@
         nativeBuildInputs = with pkgs; [
           evince
           # inkscape # use by svg support 
+          diffpdf
         ];
 
         fonts = [
