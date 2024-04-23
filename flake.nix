@@ -24,7 +24,8 @@
         inherit (pkgs.texlive) xecjk xetex bibtex texcount
         algpseudocodex algorithm2e algorithmicx
         algorithms fifo-stack varwidth tabto-generic tabto-ltx totcount tikzmark
-        ;
+        # koma-script trimspaces transparent catchfile
+        ; 
       };
     in {
       packages.default = latex-utils.lib.${system}.mkLatexPdfDocument {
@@ -35,6 +36,7 @@
         
         nativeBuildInputs = with pkgs; [
           evince
+          # inkscape # use by svg support 
         ];
 
         fonts = [
