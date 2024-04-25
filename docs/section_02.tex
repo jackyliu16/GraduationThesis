@@ -106,12 +106,12 @@ FPM383F 是一款功耗低的光学指纹识别模块，采用半导体面阵传
 
     \subsubsection{嵌入式软件设计}
 
-    参照一般嵌入式考勤打卡设备的标准结构，我设计的嵌入式应用在完成对应变量初始化之后维持在一个主循环中运行。
+    参照一般嵌入式考勤打卡设备的标准结构，我设计的嵌入式应用在完成对应变量初始化之后维持在一个主循环(如图\ref{algorithm::fingerprint_network_comm}中运行。
     一次循环包括收网络包\footnote{匹配帧头后向指纹模块下发对应UART包实现下载，删除指纹特征的效果}
     ，执行指纹匹配命令，对于指纹匹配结果进行查询，并在完成匹配时通过网络向上位机以特定的帧形式发送网络包告知其
     已经收到用户的打卡信息。
 
-    \begin{algorithm}[H]
+    \begin{algorithm}[htb]
         \caption{嵌入式设备主循环}
         \label{algorithm::fingerprint_network_comm}
         \begin{algorithmic}[1]
@@ -122,9 +122,6 @@ FPM383F 是一款功耗低的光学指纹识别模块，采用半导体面阵传
                     \State 将对应 UART 帧转发给从属指纹识别模块
                 \EndIf
                 \State $buf \gets [0; 1024]$ \Comment{重置缓冲区}
-            \ElsIf{\textbf{error} = WouldBlock}
-                \State \textbf{continue} \Comment{如果资源忙，忽略并继续}
-            \Else
                 \State \Call{LogDebug}{\textbf{error}} \Comment{打印其他错误}
             \EndIf
         
@@ -311,7 +308,7 @@ CREATE TABLE IF NOT EXISTS signIn (
             }  \caption{询问是否匹配，查询匹配结果} \label{询问是否匹配}
         \end{table}
 
-        \begin{table}[ht]
+        \begin{table}[htbp]
             \resizebox{\textwidth}{!}{%
                 \begin{tabular}{|l|l|l|l|l|l|l|l|}
                 \hline
@@ -321,11 +318,11 @@ CREATE TABLE IF NOT EXISTS signIn (
             }  \caption{匹配应答包格式} \label{匹配应答包}
         \end{table}
 
-        \newpage
         \item[考勤记录读取] 根据一般企事业单位的考勤系统的历史发展来看，读取员工考勤记录属于考勤系统的必备功能。
         
         本功能主要实现在上位机处，由上位机调用函数对于原先保存在 SQLite 中的考勤打卡表与员工-指纹特征对应表进行自动关联，并且
         基于一定的逻辑分析打印出员工的详细打卡数据与月度打卡数据。
+        \newpage
     \end{description}
       
 
