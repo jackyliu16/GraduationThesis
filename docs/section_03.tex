@@ -307,7 +307,7 @@ for (i = 0; i < priv->hw_params->rx_queues; i++) { // 初始化函数
     \cite{noauthor_fpm383c_nodate}
 
     根据 FPM383F 通信协议的规定，串口层面传输的字节数据，在链路层面实际上以类似于下文中的数据结构\ref{FPM383F::UARTdataFrame}进行存在，
-    在进行发送的时候逐个字节的进行传输。\cite{noauthor_fpm383c_nodate}
+    在进行发送的时候逐个字节的进行传输。\cite{fpm383c-modular-communication-protocol}
     从软件层面上讲，无论是发送还是由串口接收数据，均只需要对于对应 UART 的 DR 寄存器进行逐个字节读取或写入即可，具体内容被实现在硬件层面。
     
     \begin{table}[ht]
