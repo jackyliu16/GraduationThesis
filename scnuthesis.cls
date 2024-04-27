@@ -149,15 +149,15 @@
 \RequirePackage{setspace,titlesec,zhnumber,titletoc}
 
 \renewcommand{\thesection}{\zhnum{section}}
-\renewcommand{\thesubsection}{\zhnum{subsection}}
-\renewcommand{\thesubsubsection}{\arabic{subsubsection}}
+\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\arabic{section}.\arabic{subsection}.\arabic{subsubsection}}
 
 \newcommand{\sectionbreak}{\clearpage}
 \titleformat{\section}[block]{\vspace*{-10pt} \centering \zihao{3} \heiti}
-{\thesection、}{0pt}{\vspace{8pt}}
+{第 \thesection~章~~}{0pt}{\vspace{8pt}}
 
 \titleformat{\subsection}{\zihao{4} \heiti}
-{（\thesubsection）}{0pt}{}
+{\thesubsection.~~}{0pt}{}
 
 \titleformat{\subsubsection}{\zihao{-4} \heiti}
 {\thesubsubsection.~~}{0pt}{}
@@ -167,15 +167,15 @@
 \renewcommand\contentsname{\heiti \centering \zihao{3} 目~~~~录}
 
 \titlecontents{section}[0pt]{\bfseries \songti \zihao{-4}}
-{\thecontentslabel、}{}
+{第~\thecontentslabel~章~~}{}
 {\titlerule*[0.7em]{.}\contentspage}
 
 \titlecontents{subsection}[1\ccwd]{\songti \zihao{-4}}
-{（\thecontentslabel）}{}
+{\thecontentslabel~~}{}
 {\titlerule*[0.7em]{.}\contentspage}
 
 \titlecontents{subsubsection}[3\ccwd]{\songti \zihao{-4}}
-{\thecontentslabel.~~}{}
+{\thecontentslabel~~}{}
 {\titlerule*[0.7em]{.}\contentspage}
 
 
