@@ -1,3 +1,146 @@
 \nonumsection{附录A}
-本游戏可采取微买断+内部道具收费的方式进行盈利。玩家仅需十几元或几元即可游玩游戏。以低价格高质量吸引有消费潜力的玩家。而收费道具则可有建筑加速、强力卷轴，永恒之塔的复活以及入侵时的血瓶等。玩家爬塔爬到高层时死亡一定会对复活特别渴望；玩家入侵包库即将成功时一定不会吝啬对血瓶的使用，这些玩家非常重要但不是必需的内容都是可以进行内部收费的道具。
-\cite{bib01}
+
+\begin{lstlisting}[language=nix
+    , caption={可重建编译环境配置文件}
+    , label = {nix-flake}
+    , numbers = left
+    , frame=single
+    , breaklines=true
+    , breakatwhitespace=true]
+{
+description = "ArceOS Development Environment";
+
+inputs = {
+  nixpkgs.url      = "github:NixOS/nixpkgs/nixos-unstable";
+  nixpkgs-qemu7.url = "https://github.com/NixOS/nixpkgs/archive/7cf5ccf1cdb2ba5f0
+  8f0ac29fc3d04b0b59a07e4.tar.gz";
+  rust-overlay.url = "github:oxalica/rust-overlay";
+  flake-utils.url  = "github:numtide/flake-utils";
+};
+
+outputs = { self, nixpkgs, nixpkgs-qemu7, rust-overlay, flake-utils, ... }:
+  flake-utils.lib.eachDefaultSystem (system:
+  let
+    overlays = [ 
+    (import rust-overlay)
+    (self: super: {
+      # ref: https://github.com/the-nix-way/dev-templates
+      rust-toolchain =
+      let
+          rust = super.rust-bin;
+      in
+      if builtins.pathExists ./rust-toolchain.toml then
+        rust.fromRustupToolchainFile ./rust-toolchain.toml
+      else if builtins.pathExists ./rust-toolchain then
+        rust.fromRustupToolchainFile ./rust-toolchain
+      else
+        # The rust-toolchain when i make this file, which maybe change
+        (rust.nightly.latest.override {
+          extensions = [ "rust-src" "llvm-tools-preview" "rustfmt" "clippy" ];
+          targets = [ "x86_64-unknown-none" "riscv64gc-unknown-none-elf" "aarch64-unknown-none-softfloat" ];
+        });
+      qemu7 = self.callPackage "${nixpkgs-qemu7}/pkgs/applications/virtualization/qemu" {
+        inherit (self.darwin.apple_sdk.frameworks) CoreServices Cocoa Hypervisor;
+        inherit (self.darwin.stubs) rez setfile;
+        inherit (self.darwin) sigtool;
+        # Reduces the number of qemu source files from ~10000 to ~3619 source files.
+        hostCpuTargets = ["riscv64-softmmu" "riscv32-softmmu" "x86_64-softmmu" "aarch64-softmmu" ];
+      };
+      x86_64-linux-musl-cross = fetchTarball {
+        url = "https://musl.cc/x86_64-linux-musl-cross.tgz";
+        sha256 = "172zrq1y4pbb2rpcw3swkvmi95bsqq1z6hfqvkyd9wrzv6rwm9jw";
+      };
+      aarch64-linux-musl-cross = fetchTarball {
+        url = "https://musl.cc/aarch64-linux-musl-cross.tgz";
+        sha256 = "05cwryhr88sjmwykha5xvfy4vcrvwaz92r9an7n5bsyzlwwk0wpn";
+      };
+      riscv64-linux-musl-cross = fetchTarball {
+        url = "https://musl.cc/riscv64-linux-musl-cross.tgz";
+        sha256 = "119y1y3jwpa52jym3mxr9c2by5wjb4pr6afzvkq7s0dp75m5lzvb";
+      };
+    })
+    ];
+    pkgs = import nixpkgs {
+      inherit system overlays;
+    };
+  in
+{
+devShells.default = pkgs.mkShell {
+  buildInputs = (with pkgs;[
+    # Basic
+    openssl pkg-config fd zlib gnumake
+    # Development tools
+    ripgrep fzf zellij
+    # Rust
+    rustup
+    cargo-binutils
+    rust-toolchain
+    # Test
+    apacheHttpd
+  ]) ++ [
+  # Overlays part
+    pkgs.qemu
+  ];
+  
+  shellHook = ''
+    alias find=fd
+    export SHELL=zsh
+
+    # Change the mirror of rust
+    export RUSTUP_DIST_SERVER=https://mirrors.ustc.edu.cn/rust-static
+    export RUSTUP_UPDATE_ROOT=https://mirrors.ustc.edu.cn/rust-static/rustup
+
+    unset OBJCOPY # Avoiding Overlay
+    export LIBCLANG_PATH="${pkgs.llvmPackages.libclang.lib}/lib" # nixpkgs@52447
+    export LD_LIBRARY_PATH="${pkgs.zlib}/lib:$LD_LIBRARY_PATH" # nixpkgs@92946
+  
+    export PATH=$PATH:${pkgs.aarch64-linux-musl-cross}/bin:
+    ${pkgs.riscv64-linux-musl-cross}/bin:${pkgs.x86_64-linux-musl-cross}/bin
+  '';
+};
+};
+  );
+}      
+\end{lstlisting}
+
+\begin{lstlisting}[language=C
+        , caption={初始化 RX Rings}
+        , label={code::InitRxRings}
+        , numbers = left
+        , breaklines=true
+        , breakatwhitespace=true]
+static int bcmgenet_init_rx_ring(struct bcmgenet_priv *priv, unsigned int index, unsigned int size, unsigned int start_ptr, unsigned int end_ptr);
+for (i = 0; i < priv->hw_params->rx_queues; i++) { // 初始化函数
+    ret = bcmgenet_init_rx_ring(priv, i, priv->hw_params->rx_bds_per_q,
+                    i * priv->hw_params->rx_bds_per_q, (i + 1) *
+                    priv->hw_params->rx_bds_per_q);
+    if (ret) return ret;
+    ring_cfg |= (1 << i);
+    dma_ctrl |= (1 << (i + DMA_RING_BUF_EN_SHIFT));
+\end{lstlisting}
+
+\begin{lstlisting}[language=Rust
+  , caption={tock register 包装}
+  , label={code::tock_register}
+  ]
+  register_structs! {
+    Channel {
+        (0x00 => CS: ReadWrite<u32, CS::Register>),
+        (0x04 => CONBLK: ReadWrite<u32, CONBLK::Register>),
+        (0x08 => TI: ReadWrite<u32, TI::Register>),
+        (0x0c => S_AD: ReadWrite<u32, S_AD::Register>),
+        (0x10 => D_AD: ReadWrite<u32, D_AD::Register>),
+        ...
+      },
+  } ...
+  register_bitfields! { u32,
+  CS [ // Control and Status registers
+    RESET OFFSET(31) NUMBITS(1),
+    ABORT OFFSET(30) NUMBITS(1),
+    DISDEBUG OFFSET(29) NUMBITS(1),
+    WAIT_FOR_OUTS_TANDING_WRITES OFFSET(28) NUMBITS(1),
+    PANIC_PRIORITY OFFSET(20) NUMBITS(3),
+    PRIORITY OFFSET(16) NUMBITS(4),
+    ...
+  ], CS_DMA4 [ ... ] ...}
+\end{lstlisting}
