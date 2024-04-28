@@ -50,8 +50,8 @@
         
     \begin{figure}[ht]
         \centering
-        \includegraphics[scale=0.4]{imgs/cvitek.jpg}
         \caption{cvitek 驱动调用栈}    \label{fig::cvitek}
+        \includegraphics[scale=0.4]{imgs/cvitek.jpg}
     \end{figure}
 
     在整套实现中，ulib::libax 通过调用 module::axnet 所实现的底层方法（如TcpSocket，UdpSocket等）实现了用于 TCP/UDP 通信的通信源语。
@@ -80,8 +80,8 @@
         
     \begin{figure}[ht]
         \centering
-        \includegraphics[scale=0.4]{imgs/data_link_layers.jpg}
         \caption{IEEE 802.8 数据链路层}    \label{fig::dataLink}
+        \includegraphics[scale=0.4]{imgs/data_link_layers.jpg}
     \end{figure}
 
     基于 树莓派 4B Soc bcm2711 芯片手册，其板载 PHY 芯片 BCM54213PE 数据表以及 IEEE 802.3 协议手册可以了解到，目前 Soc 和 PHY 之间是存在直连的 RGMII 通信接口的。
@@ -143,8 +143,8 @@
     \end{minipage}
     \hfill
     \begin{minipage}[b]{0.45\linewidth}
-        \includegraphics[scale=0.6]{./imgs/Rings_and_Descs.jpg}        
         \captionof{figure}{DMA 描述符与环} \label{pict:DmaDescAndLoop}
+        \includegraphics[scale=0.6]{./imgs/Rings_and_Descs.jpg}        
     \end{minipage}
     \end{adjustwidth}
     
@@ -211,8 +211,8 @@
 
     \begin{figure}[ht]
         \centering
-        \includegraphics[scale=0.4]{imgs/UART跳变图.png}
         \caption{UART 跳变图}    \label{fig::uart}
+        \includegraphics[scale=0.4]{imgs/UART跳变图.png}
     \end{figure}
 
     FPM383F 通信协议要求在串口层面使用小端序，十位帧格式（1位起始位，1位停止位，8位数据位），默认采用 57600Bps进行数据传输。
@@ -264,8 +264,8 @@
 
     \begin{figure}[H]
         \centering
-        \includegraphics[scale=0.4]{./imgs/指纹信息下载.jpg}
         \caption{指纹信息下载}    \label{FPM383F::DownloadFingerPrintInfo}
+        \includegraphics[scale=0.4]{./imgs/指纹信息下载.jpg}
     \end{figure}    
 
     \subsubsection{实现说明}
