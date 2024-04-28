@@ -222,9 +222,9 @@
     在进行发送的时候逐个字节的进行传输。\cite{fpm383c-modular-communication-protocol}
     从软件层面上讲，无论是发送还是由串口接收数据，均只需要对于对应 UART 的 DR 寄存器进行逐个字节读取或写入即可，具体内容被实现在硬件层面。
     
-    \begin{table}[ht]
+    \begin{table}[H]
         \centering
-        \begin{tabular}{|l|l|l|l|l|}
+        \begin{tabular}{lllll}
         \hline
         格式        & 帧头 & 应用层长度 & 帧头校验和 & 应用层数据 \\ \hline
         长度(bytes) & 8  & 2     & 1     & 7+N   \\ \hline
@@ -235,21 +235,21 @@
     根据 FPM383F 通信协议的设定，应用层面其实由两种类型的命令构成。一种是主机向从机发送的请求，如图 \ref{FPM383F::UARTUserRequest}
     所示，另一种是从机（FPM383F）响应主机的请求，向主机发送响应，如图 \ref{FPM383F::UARTUserResponse}
 
-    \begin{table}[ht]
+    \begin{table}[H]
         \centering
-        \begin{tabular}{|l|l|l|l|l|}
+        \begin{tabular}{lllll}
         \hline
-        \multicolumn{1}{|c|}{格式} & 校验密码 & 命令 & 数据内容        & 校验和 \\ \hline
+        \multicolumn{1}{c}{格式} & 校验密码 & 命令 & 数据内容        & 校验和 \\ \hline
         长度(Byte)                 & 4    & 2  & N(0$\sim$n) & 1   \\ \hline
         \end{tabular}
         \caption{UART 请求格式表} \label{FPM383F::UARTUserRequest}
     \end{table}
 
-    \begin{table}[ht]
+    \begin{table}[H]
         \centering
-        \begin{tabular}{|l|l|l|l|l|l|}
+        \begin{tabular}{llllll}
         \hline
-        \multicolumn{1}{|c|}{格式} & 校验密码 & 命令 & 错误码 & 数据内容        & 校验和 \\ \hline
+        \multicolumn{1}{c}{格式} & 校验密码 & 命令 & 错误码 & 数据内容        & 校验和 \\ \hline
         长度(Byte)                 & 4    & 2  & 4   & N(0$\sim$n) & 1   \\ \hline
         \end{tabular}
         \caption{UART 响应格式表} \label{FPM383F::UARTUserResponse}

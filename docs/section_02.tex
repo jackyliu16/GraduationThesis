@@ -239,9 +239,9 @@ CREATE TABLE IF NOT EXISTS signIn (
 
         \begin{table}[htbp]
             \resizebox{\textwidth}{!}{%
-                \begin{tabular}{|l|l|l|l|l|l|l|l|}
+                \begin{tabular}{llllllll}
                 \hline
-                \multicolumn{1}{|c|}{校验密码} & CMD类型 & CMD号 & 等待手指 & 按压次数 & ID\_H & ID\_L & 校验和  \\ \hline
+                \multicolumn{1}{c}{校验密码} & CMD类型 & CMD号 & 等待手指 & 按压次数 & ID\_H & ID\_L & 校验和  \\ \hline
                 0x00 0x00 0x00 0x00        & 0x01  & 0x18 & 0x01 & 0x06 & 0xFF  & 0xFF  & 0xE2 \\ \hline
                 \end{tabular}
             }
@@ -254,20 +254,20 @@ CREATE TABLE IF NOT EXISTS signIn (
         下载到树莓派对应的指纹模块上，由此完成了一次标准的指纹注册功能。
 
         \begin{table}[htbp]
-            \resizebox{\textwidth}{!}{%
-                \begin{tabular}{|l|l|l|l|l|l|}
+                \centering
+                \begin{tabular}{llllll}
                 \hline
-                \multicolumn{1}{|c|}{校验密码} & CMD类型 & CMD号 & ID\_H & ID\_L & 校验和  \\ \hline
+                \multicolumn{1}{c}{校验密码} & CMD类型 & CMD号 & ID\_H & ID\_L & 校验和  \\ \hline
                 0x00 0x00 0x00 0x00        & 0x01  & 0x53 & 0x00  & 0x01  & 0xAB \\ \hline
                 \end{tabular}
-            } \caption{获取上传信息命令用户层帧} \label{uart::upload-info}
+             \caption{获取上传信息命令用户层帧} \label{uart::upload-info}
         \end{table}
 
         \begin{table}[htbp]
             \resizebox{\textwidth}{!}{%
-            \begin{tabular}{|l|l|l|l|l|l|l|l|}
+            \begin{tabular}{llllllll}
                 \hline
-                \multicolumn{1}{|c|}{校验密码} & CMD类型 & CMD号 & ID\_H & ID\_L & NUM\_H & NUM\_L & 校验和  \\ \hline
+                \multicolumn{1}{c}{校验密码} & CMD类型 & CMD号 & ID\_H & ID\_L & NUM\_H & NUM\_L & 校验和  \\ \hline
                 0x00 0x00 0x00 0x00        & 0x01  & 0x51 & 0xFF  & 0xFF  & 0x00   & 0x00   & 0xAC \\ \hline
                 \end{tabular}
             } \caption{获取指纹特征命令用户层帧} \label{uart::upload-data}
@@ -278,11 +278,11 @@ CREATE TABLE IF NOT EXISTS signIn (
         指纹删除功能主要在上位机中完成，在出现指纹出现问题的时候，由 HR 执行运行函数，自动化删除数据库中员工对应的指纹特征编号，
         同时将删除指纹特征编号的命令通过下面的指令\ref{指纹特征清除}经由树莓派下发到指纹终端，根据不同的需求，在下面的帧中配置不同的格式。
 
-        \begin{table}[ht]
+        \begin{table}[H]
             \resizebox{\textwidth}{!}{%
-                \begin{tabular}{|l|l|l|l|l|l|l|}
+                \begin{tabular}{lllllll}
                 \hline
-                \multicolumn{1}{|c|}{校验密码} & CMD类型 & CMD号 & CL\_FLAG & ID\_H & ID\_L & 校验和  \\ \hline
+                \multicolumn{1}{c}{校验密码} & CMD类型 & CMD号 & CL\_FLAG & ID\_H & ID\_L & 校验和  \\ \hline
                 0x00 0x00 0x00 0x00        & 0x01  & 0x51 & 03       & 0xFF  & 0xFF  & 0xAC \\ \hline
                 \end{tabular} 
             } \caption{指纹特征清除} \label{指纹特征清除}
@@ -298,21 +298,21 @@ CREATE TABLE IF NOT EXISTS signIn (
         将其中包含的 ID 按照 sqlite 的规定插入到对应表中
         \footnote{sqlite中有一种名为 CURRENT\_TIMESTAMP 的默认属性，会默认将插入项的时间作为一个元素一起插入}。
 
-        \begin{table}[ht]
-            \resizebox{\textwidth}{!}{%
-                \begin{tabular}{|l|l|l|l|}
-                \hline
-                \multicolumn{1}{|c|}{校验密码} & CMD类型 & CMD号    & 校验和  \\ \hline
-                0x00 0x00 0x00 0x00        & 0x01  & 0x21 / 0x22 & 0xAC \\ \hline
-                \end{tabular}
-            }  \caption{询问是否匹配，查询匹配结果} \label{询问是否匹配}
+        \begin{table}[H]
+            \centering
+            \begin{tabular}{llll}
+            \hline
+            \multicolumn{1}{c}{校验密码} & CMD类型 & CMD号    & 校验和  \\ \hline
+            0x00 0x00 0x00 0x00        & 0x01  & 0x21 / 0x22 & 0xAC \\ \hline
+            \end{tabular}
+            \caption{询问是否匹配，查询匹配结果} \label{询问是否匹配}
         \end{table}
 
-        \begin{table}[htbp]
+        \begin{table}[H]
             \resizebox{\textwidth}{!}{%
-                \begin{tabular}{|l|l|l|l|l|l|l|l|}
+                \begin{tabular}{llllllll}
                 \hline
-                \multicolumn{1}{|c|}{校验密码} & CMD类型 & CMD号 & 错误码                 & 匹配结果      & 匹配分数      & 匹配ID      & 校验和  \\ \hline
+                \multicolumn{1}{c}{校验密码} & CMD类型 & CMD号 & 错误码                 & 匹配结果      & 匹配分数      & 匹配ID      & 校验和  \\ \hline
                 0 0 0 0        & 0x01  & 0x51 & 0 0 0 0 & 0x00 0x01 & 0x27 0x0F & 0x00 0x03 & 0xAC \\ \hline
                 \end{tabular} 
             }  \caption{匹配应答包格式} \label{匹配应答包}
