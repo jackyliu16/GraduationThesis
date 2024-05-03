@@ -117,20 +117,20 @@ FPM383F 是一款功耗低的光学指纹识别模块，采用半导体面阵传
         \begin{algorithmic}[1]
         \While{true} \Comment{嵌入式设备主循环事件}
             % \State \textbf{try} \Call{ReceiveData}{$socket, \& buf$}
-            \If{\Call{Receive}{$socket, \& buf$} = Ok$(size, addr)$} \Comment{收到了网络包}
+            \If{\Call{Receive}{$socket, \& buf$} 正常返回 $(size, addr)$} \Comment{收到了网络包}
                 \If{收包结果与特定帧头匹配}
-                    \State 将对应 UART 帧转发给从属指纹识别模块
+                    \State \Call{Write}{serial, \text{\&buf[..size]}} \Comment{将帧转发给从属指纹模块}
                 \EndIf
                 \State $buf \gets [0; 1024]$ \Comment{重置缓冲区}
-                \State \Call{LogDebug}{\textbf{error}} \Comment{打印其他错误}
+            \Else{打印错误信息}
             \EndIf
         
-            \State \Call{Write}{serial, \text{search\_fingerprint\_match\_pattern}} \Comment{向设备发送匹配命令}
+            \State \Call{Write}{serial, \text{search\_fingerprint\_match\_pattern}} \Comment{要求设备自动匹配指纹}
 
             \State \Call{Delay}{10} \Comment{等待模块进行指纹匹配}
             \State \Call{GetFrame}{$serial$} \Comment{处理返回帧}
             
-            \State \Call{Write}{serial, \text{check\_match\_\_result\_pattern}} \Comment{向设备发送匹配命令}
+            \State \Call{Write}{serial, \text{check\_match\_\_result\_pattern}} \Comment{查询匹配结果}
         
             \If{$frame \gets$ \Call{GetFrame}{$serial$}}  \Comment{对于返回包进行分析}
                 \State \Call{Assert}{$frame$, CmdType::CheckMatchFingerprint} \Comment{确保应答包一致}

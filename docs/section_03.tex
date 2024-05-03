@@ -286,11 +286,17 @@
     \caption{以太网帧解析算法}
     \label{algorithm::UART}
     \begin{algorithmic}[1]
+    \renewcommand{\algorithmicrequire}{\textbf{Input:}}
+    \renewcommand{\algorithmicensure}{\textbf{Output:}}
+    % \newcommand{\Desc}[2]{\State \makebox[4em][l]{#1}#2}
+    % \Desc{Input: }{matrix of measurements}
+    \Require ser: 串口对象
+    \Ensure (length: int, userLayerData: List[int]) 
     \Function{parse}{$ser$} 
         \State $frame\_head \gets [0xF1, 0x1F, 0xE2, 0x2E, 0xB6, 0x6B, 0xA8, 0x8A]$ \Comment{帧头固定}
         \State $frame\_data \gets$ array of size 256 filled with 0 \Comment{考虑到全局分配，暂时采用数组}
         \State $len \gets 0$
-        \State $cnt \gets 7$ \Comment{帧头的最后一个元素为7}
+        \State $cnt \gets 7$ \Comment{帧头的最后一位为7}
         \While{true}
             \State $data \gets$ read one byte from serial port $ser$ \Comment{逐字节读数据}
             \If{$frame\_data[0:8] \neq frame\_head[:])$}
@@ -306,8 +312,7 @@
                 \State $cnt \gets cnt + 1$
             \EndIf
             \If{$len \neq 0$ and $(cnt - 11) == len$} \Comment{确保当前帧的全部数据均已被收集}
-                \State \Return $(len, frame\_data[11:cnt])$ 
-                \Comment{这是一个简单抽象，对应到上/下位机有不同实现}
+                \State \Return $(len, frame\_data[11:cnt-1])$ 
             \EndIf
         \EndWhile
     \EndFunction
