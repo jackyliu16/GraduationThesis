@@ -28,15 +28,23 @@
 
 \newpage
 \begin{abstract}
+\zihao{4}
 % TODO: 答辩意见：修改内容，使之明确，加强
-随着计算机网络安全事件频繁发生，保障底层操作系统的安全性刻不容缓。
-在本次的毕业设计中采用了一种不同于嵌入式程序的传统底层操作系统的 ArceOS 操作系统，
-这种操作系统以 Rust 语言构建，利用语言内置对于安全的保障机制与类 Unikernl, LibOS 设计理念削减攻击面的形式
-在内部高度模块化的基础上实现了更高程度上的安全保障。
+随着计算机网络安全事件的频繁发生，保证底层操作系统的安全性刻不容缓，本次毕业设计基于 Rust 语言，采用 ArceOS 
+组件化操作系统，利用语言内置安全保障机制与类 Unikernel, LibOS 设计理念削减攻击面的形式，在内部高度模块化的
+基础上实现了一个最为精简的，具有更高安全性保障的嵌入式指纹考勤系统。
 
-本次毕业设计在 ArceOS 这种操作系统平台上完成了常用嵌入式应用 - 考勤打卡系统的开发，其中主要实现了如下几个部分的内容：
-基于树莓派硬件的 UART 串口通信驱动实现与 FPM383C UART 通信协议解析，BCM54213PE 网卡驱动开发，
-上位机指纹特征存储与发送、基于 UDP Socket 的考勤记录机制的实现。
+本课题基于 Rust 语言在组件化 ArceOS 操作系统上实现了一个简单的考勤系统对于人员进行考勤管理，
+在实现过程中涉及到了指纹识别技术，传感器技术，嵌入式技术，网络通信技术，数据库技术等内容。本设计通过实现
+FPM383C 串口驱动调用指纹模块通信协议实现了指纹识别功能，通过实现 BCM54213PE 网卡驱动实现了对以太网帧的
+传输支持，通过将网卡驱动与上层 ArceOS 以太网协议栈合并实现了完整的 Udp 收发支持，并基于此完成了指纹考勤系统的
+网络通信支持，实现了下位机向上位机报告特定指纹 ID 打卡成功，上位机基于上位机从属指纹模块经由网络完成指纹
+特征数据分发等功能。
+
+本次毕业设计实现的底层网卡驱动在最优情况下可以实现 96.0 MBps 的以太网帧通信， 嵌合 ArceOS 上层以太网协议栈之后，
+UDP 通信速率还能达到 54.63 MBps，FPM383C 串口传输驱动能正常工作。本次毕业设计集合上述各种驱动完成了一个最为精简的，
+涵盖了考勤系统所有必要模块的完整指纹考勤系统。在此系统上可以实现在各打卡终端中打卡联网记录吗，
+上位机中可以根据人事考勤需求对于用户和对应的指纹模板进行联网增删改查等功能。
 
 通过对ArceOS操作系统的应用开发，不仅验证了其在嵌入式系统中的实用性和安全性，
 也为类似系统提供了一个可靠的参考实现。
@@ -46,19 +54,14 @@
 
 % 英文摘要
 \begin{abstractEN}
-    With the increasing frequency of computer network security incidents, 
-    enhancing the security of underlying operating systems has become urgent. 
-    This graduation project adopts a novel embedded operating system called ArceOS, 
-    which is distinct from traditional embedded operating systems 
-    and is developed using the Rust programming language. 
-    Leveraging Rust's built-in security mechanisms and 
-    inspired by the design philosophies of Unikernel and LibOS, ArceOS significantly reduces potential 
-    attack surfaces through its highly modular internal architecture, 
-    thereby offering an elevated level of security.
 
-    This thesis details the development of a commonly used embedded application - an attendance system - on the ArceOS platform. The project encompasses several critical components, including the implementation of UART serial communication drivers based on Raspberry Pi hardware, parsing of the FPM383C UART communication protocol, development of the BCM54213PE network card driver, and the creation of an upper-level machine fingerprint feature management and storage system, along with an attendance recording mechanism utilizing UDP Sockets.
+    With the increasing frequency of computer network security incidents, ensuring the security of the underlying operating system has become an urgent need. This graduation project leverages the Rust language and the ArceOS modular operating system, employing the language's built-in security mechanisms and the Unikernel and LibOS design principles to minimize the attack surface, creating an optimized, highly secure, embedded fingerprint attendance system with a high degree of internal modularity.
 
-    In this paper，we study the relationship between the mechanism and the mechanism of transmitting and transmitting the transmitting data.
+    This project uses Rust to implement a simple attendance system on the modular ArceOS operating system for personnel attendance management. The implementation involves fingerprint recognition technology, sensor technology, embedded technology, network communication technology, database technology, and more. The design achieves fingerprint recognition by implementing the FPM383C serial driver to communicate with the fingerprint module. It also realizes Ethernet frame transmission by implementing the BCM54213PE network card driver and achieves complete UDP transmission and reception by integrating the network card driver with the ArceOS Ethernet protocol stack, thus providing network communication support for the fingerprint attendance system. The system allows the embedded system to report successful fingerprint ID registration to the host, which, in turn, can distribute fingerprint feature data over the network from the master fingerprint module.
+
+    The implemented network card driver in this graduation project can achieve Ethernet frame communication at an optimal speed of 96.0 MBps. After integrating the upper ArceOS Ethernet protocol stack, the UDP communication rate can still reach 54.63 MBps, and the FPM383C serial transfer driver functions correctly. This project, through the combination of these various drivers, has created an optimized fingerprint attendance system that includes all the essential modules of an attendance system. This system enables clock-in records across all terminals, and the host can add, delete, modify, and query users and their fingerprint templates according to attendance requirements.
+
+    By developing applications on the ArceOS operating system, this project not only verifies its practicality and security in embedded systems but also provides a reliable reference implementation for similar systems. The successful implementation of this research demonstrates that using the Rust language and modern operating system concepts can significantly improve the security and efficiency of embedded systems.
     \keywordsEN{Unikernel, ArceOS, Component-based Operating Systems, Network Drivers} % English Keywords
 \end{abstractEN}
 
