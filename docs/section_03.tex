@@ -92,10 +92,10 @@
 
     % \subsubsection{源码分析}
 
-    根据对于 uboot 源码所进行的分析，在以太网 PHY 芯片中维持了如下的数据结构\ref{fig::uboot-genet-struct}。
 
     \begin{minipage}[t]{0.42\linewidth}
-    \begin{lstlisting}[columns=fullflexible, label={fig::uboot-genet-struct}]       +
+    \begin{lstlisting}[columns=fullflexible]
+       +
 0x0    | IOBASE
 +------|-----------------------------+
 0x2000 | GENET_RX_OFF
@@ -109,23 +109,23 @@
 +------|-----------------------------+
 0x4000 | GENET_TX_OFF
        | As above ...
-       +
         \end{lstlisting}
+        \captionof{figure}{BCM54213PE内存分配示意图\label{fig::uboot-genet-struct}}
     \end{minipage}
     \quad
     \begin{minipage}[t]{0.5\linewidth}
         \vspace{2em}
         \setlength{\parindent}{1em}
-        其中，IOBASE 为 BCM54213PE 芯片基于 MMIO 地址映射，在树莓派内存中对应的地址。
-        在树莓派网卡中，0x2000-0x4000的地址主要分配给与Rx相关的结构体。0x4000-0x6000的地址分配给TX相关的结构体。
+        根据对于 uboot 源码所进行的分析，在以太网 PHY 芯片中维持了如图\ref{fig::uboot-genet-struct}所示的数据结构。
+        其中，IOBASE 为 BCM54213PE 芯片寄存器通过 MMIO 映射到树莓派内存中对应的地址起始地址。
 
-        这些结构体都是以太网卡中 DMA 模块至关重要的成分。
+        在树莓派网卡中，0x2000-0x4000的地址主要分配给与Rx相关的结构体。0x4000-0x6000的地址分配给TX相关的结构体。
         以 0x2000 GENET\_RX\_OFF 开头，到 GENET\_RDMA\_REG\_OFF 为止的一段地址中保存了 256 个 DMA 描述符结构。
     \end{minipage}
 
     以 0x3000 GENET\_RDMA\_REG\_OFF 开头，到 RDMA\_RING\_REG\_BASE 为止的这一段地址中保存了 BCM54213PE 
     所支持的 16 个不同优先级别的接受环（方便 DMA 实现基于不同优先级的接受），
-    还在 RDMA\_RING\_REG\_BASE 与 RDMA\_RING\_REG\_BASE 之间保存了一个默认的接受环。
+    还在 RDMA\_RING\_REG\_BASE 与 RDMA\_RING\_REG \_BASE 之间保存了一个默认的接受环。
 
     也就是说在 BCM54213PE 的硬件实现中提供了对于 16 个优先级队列，以及一个默认队列的支持。不过根据源代码，
     实际上不管是树莓派官方的 linux 内核或者 uboot 下的以太网驱动都没有全部使用这些队列。
