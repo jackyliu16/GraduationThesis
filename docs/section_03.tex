@@ -28,9 +28,7 @@
     同时通过 CH340 USB 转 TTL 串口传输模块发送开始传输信号给开发机中 Ruby 运行的应用程序，应用程序将内核镜像文件通过串口传输到树莓派4B内存中以完成镜像加载。
     最终最小配置内核将控权转交给内核镜像文件，来配置基础的，基于串口传输的二进制镜像文件传输配置。
 
-    \subsubsection{基于 Nix 构建可重构开发环境}
-
-    基于开发环境一贯的可重构性，易重构性，同步性的需求的考量，我选用了 \href{https://nixos.org/}{Nix} flakes 对于项目整体依赖进行管理。
+    同时，基于开发环境一贯的可重构性，易重构性，同步性的需求的考量，我选用了 \href{https://nixos.org/}{Nix} flakes 对于项目整体依赖进行管理。
     就目前来看，除了对于使用到其他项目中的 docker 的部分，由于在 Non-NixOS 中，Nix 无法介入 systemctl 的管理而存在一定的不一致情况以及由于 WSL 对于串口设备连接的限制
     \footnote{在WSL中连接串口设备的时候，需要额外安装 usbipd}，其他的部分表现良好，均能很好的在 WSL, NixOS, Debian 等常用开发系统中构建一致，可用的开发环境。
 
@@ -268,9 +266,7 @@
         \caption{指纹信息下载}    \label{FPM383F::DownloadFingerPrintInfo}
     \end{figure}    
 
-    \subsubsection{实现说明}
-
-    在树莓派上提供了一系列与 UART 相关的寄存器，如 UART0, UART1(mini), 
+    在实现上，树莓派提供了一系列与 UART 相关的寄存器，如 UART0, UART1(mini), 
     UART2-5等，考虑到目前 GPIO 口的占用情况，我选用了 GPIO4,5 所对应的串口
     UART3 来完成串口信息交换。
 
@@ -278,7 +274,7 @@
     提供的基于树莓派 UART 的串口树莓派初始化方案，进行了大量的适应性修改，在原先仅实现了串口收发包的基础上
     实现了对于 FPM383F 通信协议的适配，实现了解析，生成等功能。同时，由于根据上位机中实现指纹注册功能的设计，
     我同样使用 python 语言在上位机中实现了对应的功能
-    \footnote{没有任何基于py语言的有关实现，唯一一个\href{micropython-HLK-FPM383C}{https://github.com/deerbleats/micropython-HLK-FPM383C}， 是在嵌入式设备上完成的处理工作}。
+    \footnote{没有找到任何基于py语言的实现，唯一一个\href{https://github.com/deerbleats/micropython-HLK-FPM383C}{micropython-HLK-FPM383C}， 是在嵌入式设备上完成的处理工作}。
 
     具体算法抽象如下：
 
@@ -320,4 +316,5 @@
     \end{algorithm}
     
     考虑到实现的便捷程度，我并没有在下位机中实现对应帧的和校验，只是采用了简单的
-    帧头循环方式，实现了对于串扰数据等因素导致的乱码使帧头校验不通过的情况进行了预防。
+    帧头循环方式，实现了对于串扰数据等因素导致的乱码使帧头校验不通过的情况进行了预防
+    \footnote{但是这样就会出现一个问题，当某个字节收到影响没有被正确识别就会导致程序卡死}。
