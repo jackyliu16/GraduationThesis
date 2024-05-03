@@ -4,7 +4,6 @@
     , caption={可重建编译环境配置文件}
     , label = {nix-flake}
     , numbers = left
-    , frame=single
     , breaklines=true
     , breakatwhitespace=true]
 {
@@ -108,15 +107,16 @@ devShells.default = pkgs.mkShell {
         , label={code::InitRxRings}
         , numbers = left
         , breaklines=true
+        , captionpos=b
         , breakatwhitespace=true]
 static int bcmgenet_init_rx_ring(struct bcmgenet_priv *priv, unsigned int index, unsigned int size, unsigned int start_ptr, unsigned int end_ptr);
 for (i = 0; i < priv->hw_params->rx_queues; i++) { // 初始化函数
-    ret = bcmgenet_init_rx_ring(priv, i, priv->hw_params->rx_bds_per_q,
-                    i * priv->hw_params->rx_bds_per_q, (i + 1) *
-                    priv->hw_params->rx_bds_per_q);
-    if (ret) return ret;
-    ring_cfg |= (1 << i);
-    dma_ctrl |= (1 << (i + DMA_RING_BUF_EN_SHIFT));
+ret = bcmgenet_init_rx_ring(priv, i, priv->hw_params->rx_bds_per_q,
+              i * priv->hw_params->rx_bds_per_q, (i + 1) *
+              priv->hw_params->rx_bds_per_q);
+if (ret) return ret;
+ring_cfg |= (1 << i);
+dma_ctrl |= (1 << (i + DMA_RING_BUF_EN_SHIFT));
 \end{lstlisting}
 
 \begin{lstlisting}[language=Rust
