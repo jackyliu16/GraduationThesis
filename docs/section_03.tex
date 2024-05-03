@@ -39,7 +39,7 @@
     同时，为了保证引入的工具链能完整的运行，
     我根据 \href{https://github.com/nixos/nixpkgs}{nixpkgs} 中提出的 issue，对于部分存在的问题进行了修复（见 77-86 行）。
 
-\subsection{ArceOS 操作系统现有网络驱动实现分析}
+\subsection{ArceOS 操作系统现有 cvitek 网卡驱动实现分析}
 
     下图\ref{fig::cvitek}左侧的部分是 ArceOS 操作系统的整体布局，右侧是现有\href{https://github.com/yuoo655/arceos_net/tree/hsp}{cvitek 物理网卡驱动} 的逐层调用情况。
 
@@ -71,7 +71,7 @@
     所必须要实现的 traits（如 transmit, receive）等方法。
     新的网络驱动会使用其内部方法实现这些对应的 traits，将这些方法包装成为 ArceOS 的调用方法。
 
-\subsection{以太网卡驱动实现}
+\subsection{BCM54213PE 以太网卡驱动分析与实现}
 
     根据前文的分析，如果想要实现在 TRANSPORT 层或者 NETWORK 层实现树莓派和主机之间的通信效果，主要需要实现以太网 OSI 七层模型中的 DATA\_LINK 与 PHYDIVSL 层之间的通信，
     由下图\ref{fig::dataLink}可知，主要需要实现的部分在于使 Soc 上的 MAC 实现能通过 GMII, RGMII，Serial-GMII 等接口标准与 PHY 芯片进行联通，进而调用 PHY 芯片上对于以太网传输介质上光，电等信号进行解析的方法。
@@ -193,7 +193,7 @@
 
     % TODO: 后面看是用我自己的驱动还是直接用现成的
 
-    \subsection{FPM383F 指纹识别模块串口通信单元分析}
+    \subsection{FPM383F 指纹识别模块串口通信单元分析与实现}
 
     UART（Universal Asynchronous Receiver/Transmitter，通用异步收发传输器）也常被称为串口。
     UART 总线是在开发中使用频率最高的数据总线，其最大的特点就是在其上进行传输的时候仅需要三根信号线（TX，RX，GND）
