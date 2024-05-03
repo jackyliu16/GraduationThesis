@@ -49,19 +49,20 @@
     \footnote{相较于一般的BIND DNS的Linux VM 镜像达到462MB，根据他们方法生成的Mirage设备生成的镜像大小只要183.5kB}
     的同时，实现了更大程度上的安全性保证。\cite{madhavapeddy_unikernels_nodate}
 
-    在嵌入式领域中，KUENZER 等在他们的研究中提出了一种名为 Unikraft 的新型微库操作系统，这种操作系统提供了完全模块化的操作系统基元和一系列高性能 API（也是微库） 以方便用户对于操作系统进行定制。
+    在嵌入式领域中，Kuenzer 等在他们的研究中提出了一种名为 Unikraft 的新型微库操作系统，这种操作系统提供了完全模块化的操作系统基元和一系列高性能 API（也是微库） 以方便用户对于操作系统进行定制。
     不同于前者必须通过 OCaml 函数式 进行开发，unikraft 通过其独特的编译、链接工具，实现了构建镜像过程中的静态链接，进而利用了编译器提供的死代码消除（Dead Code Elimination）与链接
     时间优化等功能对于应用程序进行优化。
     \cite{kuenzer_unikraft_2021}
 
     而随着 Rust 这种新型的，通过强制类型类型声明，所有权检查机制，生命周期检查器等一系列方式保障安全性的编程语言的出现，逐渐出现了一系列利用编程语言安全性优化的操作系统内核。
-    LANKES 等在 2019 年的论文中首次提出使用 Rust 语言代替传统不安全的 C/CPP 程序语言开发操作系统，同时也利用其安全的内存模型和强大的类型系统提高系统的质量。
+    Lankes 等在 2019 年的论文中首次提出使用 Rust 语言代替传统不安全的 C/CPP 程序语言开发操作系统，同时也利用其安全的内存模型和强大的类型系统提高系统的质量。
     他们在实验中使用 Rust 语言重构了其基于 C 开发的 HermitCore，在构建 RustyHermit 的过程中，他们还证明了可以在 Rust 工具链中透明的集成其对于 Rusty Hermit 的支持，且二者性能相当。
-    同时只有相当于 3.27\%左右的代码不能通过 Rust 编译器进行进行检查保障其安全性。
-    \cite{lankes_exploring_2019, lankes_rustyhermit_2020}
-    后来，(LANKES 等, 2020)尝试通过Rust语言重新实现了初版的 HermitCore（Rusty Hermit），
+    同时只有相当于 3.27\%左右的代码不能通过 Rust 编译器进行进行检查保障其安全性
+    \cite{lankes_exploring_2019}。
+    后来，Lankes 等尝试通过Rust语言重新实现了初版的 HermitCore（Rusty Hermit），
     结果表明Rust语言实现版本与C语言实现版本在性能方面没有明显差异。
     同时，得益于Rust独特的标记不安全代码的能力，操作系统中只有约3.27\%的代码需要特别关注安全性。
+    \cite{lankes_rustyhermit_2020}。
 
     % 基于类似于 (BOOS 等，2020) 提出的 Theseus 操作系统
     % NOTE: 似乎这边不太应该提到忒休斯，毕竟贡献其实都不算是一个方向的？
@@ -70,8 +71,8 @@
     % Matching the language’s runtime model only allows the compiler to view all Theseus components.
     % uses safe code to the fullest extent possible at all layers of the system, prioritizing safety over all else, e.g.
 
-    来自清华大学的陈渝团队开发了一种基于Rust安全性保障的新型操作系统ArceOS，将组件化和库操作系统相结合，在通过组件化提升操作系统可定制性的情况下
-    保持尽可能大的独立性以方便用户以类似微内核的方式简话操作系统想法的开发与测试。使新的调度技术，内存管理技术，
+    来自清华大学的陈渝团队开发了一种基于Rust安全性保障的新型操作系统ArceOS，该操作系统将组件化和库操作系统相结合，在通过组件化提升操作系统可定制性的情况下
+    保持尽可能大的独立性以方便用户以类似微内核的方式简化操作系统想法的开发与测试。使新的调度技术，内存管理技术，
     文件系统等尽可能做到一键替换现有的库（crates）以方便进行开发与测试。
 
     本次毕业设计主要是想要通过在这种不同于传统操作系统架构，如宏内核或者微内核的类 LibOS，Unikernel 架构
@@ -94,7 +95,7 @@
 
     本研究主要的目的在于通过在一中不同于传统操作系统内核架构的组件化操作系统 ArceOS 上开发常见嵌入式项目。通过项目中对于操作系统与底层驱动的交互，深入了解嵌入式原理。
 
-    本研究的主要任务在于在一个目前尚未完成树莓派 BCM54213PE 以太网驱动，FPM383C 串口指纹模块通信驱动支持，
+    本研究的主要任务在于在一个目前尚未完成树莓派 BCM54213PE 以太网驱动，FPM383C 串口指纹模块通信驱动支持
     的组件化操作系统 ArceOS 上实现一个简单的联网指纹考勤系统。其中的主要难点在于对应驱动的实现与 ArceOS 操作系统嵌合。
 
 \subsection{研究的预期目标}

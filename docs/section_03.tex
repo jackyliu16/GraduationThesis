@@ -6,12 +6,12 @@
 
     根据现有的各种企事业单位对于考勤打卡的需求，在考勤系统中最核心的功能特性是特征性识别和日志记录功能。
     
-    因此，在总体设计上本研究计划采用最简单的由指纹识别模块获取输入，经过 MCU 中简单处理再转发给
+    因此，在总体设计上本研究计划采用最简单的由指纹识别模块获取输入，经过 Soc 中简单处理再转发给
     linux 下的控制主机的设计。
 
 \subsection{嵌入式开发环境的搭建与说明}
 
-    由于嵌入式开发所基于的 MCU 一般性能相当有限，就算是采用一般 linux 操作系统进行本机编译，其占用时间也会相对比较长，同时，也无法应对一些占用系统内存资源较大的编译场景。
+    由于嵌入式开发所基于的主控一般性能相当有限，就算是采用一般 linux 操作系统进行本机编译，其占用时间也会相对比较长，同时，也无法应对一些占用系统内存资源较大的编译场景。
     因此，在嵌入式开发中，一般通过交叉编译的方式实现在 x86\_64-linux 平台或其他通用操作系统架构平台上实现对于目标平台代码的编译以更好的利用硬件资源。
 
     在本文的实现过程中基于 \href{https://nixos.org/}{Nix} 管理 x86\_64-linux 平台实现了对 aarch64-unknown-linux 目标平台的编译，
@@ -48,8 +48,8 @@
         
     \begin{figure}[ht]
         \centering
-        \caption{cvitek 驱动调用栈}    \label{fig::cvitek}
         \includegraphics[scale=0.4]{imgs/cvitek.jpg}
+        \caption{cvitek 驱动调用栈}    \label{fig::cvitek}
     \end{figure}
 
     在整套实现中，ulib::libax 通过调用 module::axnet 所实现的底层方法（如TcpSocket，UdpSocket等）实现了用于 TCP/UDP 通信的通信源语。
@@ -214,10 +214,10 @@
     \end{figure}
 
     FPM383F 通信协议要求在串口层面使用小端序，十位帧格式（1位起始位，1位停止位，8位数据位），默认采用 57600Bps进行数据传输。
-    \cite{noauthor_fpm383c_nodate}
+    \cite{fpm383c-modular-communication-protocol}
 
     根据 FPM383F 通信协议的规定，串口层面传输的字节数据，在链路层面实际上以类似于下文中的数据结构\ref{FPM383F::UARTdataFrame}进行存在，
-    在进行发送的时候逐个字节的进行传输。\cite{fpm383c-modular-communication-protocol}
+    在进行发送的时候逐个字节的进行传输\cite{fpm383c-modular-communication-protocol}。
     从软件层面上讲，无论是发送还是由串口接收数据，均只需要对于对应 UART 的 DR 寄存器进行逐个字节读取或写入即可，具体内容被实现在硬件层面。
     
     \begin{table}[H]
@@ -230,8 +230,8 @@
         \end{tabular}
     \end{table}
     
-    根据 FPM383F 通信协议的设定，应用层面其实由两种类型的命令构成。一种是主机向从机发送的请求，如图 \ref{FPM383F::UARTUserRequest}
-    所示，另一种是从机（FPM383F）响应主机的请求，向主机发送响应，如图 \ref{FPM383F::UARTUserResponse}
+    根据 FPM383F 通信协议的设定，应用层面其实由两种类型的命令构成。一种是主机向从机发送的请求，如表 \ref{FPM383F::UARTUserRequest}
+    所示，另一种是从机（FPM383F）响应主机的请求，向主机发送响应，如表 \ref{FPM383F::UARTUserResponse}所示。
 
     \begin{table}[H]
         \centering
@@ -253,7 +253,7 @@
         \end{tabular}
     \end{table}
 
-    我这里采用我实现过程中相对比较复杂的一个部分，对于主从机响应的整个过程进行说明，如图\ref{FPM383F::DownloadFingerPrintInfo}所示。
+    我这里采用我实现过程中相对比较复杂的一个部分，对于主从机响应的整个过程进行说明，如表\ref{FPM383F::DownloadFingerPrintInfo}所示。
     在我们从指纹模块获取对应指纹信息并且上传到上位机的时候，我们需要先使用0x53命令，向串口模块请求上传对应 ID 的指纹信息，
     指纹模块在没有出现错误的情况下会反馈特征长度，同时错误码置为0。
     获取到该ID对应的整体特征长度之后，我们就可以通过循环命令，逐帧
