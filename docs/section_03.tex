@@ -80,8 +80,8 @@
         
     \begin{figure}[ht]
         \centering
-        \caption{IEEE 802.8 数据链路层}    \label{fig::dataLink}
         \includegraphics[scale=0.4]{imgs/data_link_layers.jpg}
+        \caption{IEEE 802.8 数据链路层}    \label{fig::dataLink}
     \end{figure}
 
     基于 树莓派 4B Soc bcm2711 芯片手册，其板载 PHY 芯片 BCM54213PE 数据表以及 IEEE 802.3 协议手册可以了解到，目前 Soc 和 PHY 之间是存在直连的 RGMII 通信接口的。
@@ -143,8 +143,8 @@
     \end{minipage}
     \hfill
     \begin{minipage}[b]{0.45\linewidth}
-        \captionof{figure}{DMA 描述符与环} \label{pict:DmaDescAndLoop}
         \includegraphics[scale=0.6]{./imgs/Rings_and_Descs.jpg}        
+        \captionof{figure}{DMA 描述符与环} \label{pict:DmaDescAndLoop}
     \end{minipage}
     \end{adjustwidth}
     
@@ -211,8 +211,8 @@
 
     \begin{figure}[ht]
         \centering
-        \caption{UART 跳变图}    \label{fig::uart}
         \includegraphics[scale=0.4]{imgs/UART跳变图.png}
+        \caption{UART 跳变图}    \label{fig::uart}
     \end{figure}
 
     FPM383F 通信协议要求在串口层面使用小端序，十位帧格式（1位起始位，1位停止位，8位数据位），默认采用 57600Bps进行数据传输。
@@ -224,12 +224,12 @@
     
     \begin{table}[H]
         \centering
+        \caption{UART 数据帧格式表} \label{FPM383F::UARTdataFrame}
         \begin{tabular}{lllll}
         \hline
         格式        & 帧头 & 应用层长度 & 帧头校验和 & 应用层数据 \\ \hline
         长度(bytes) & 8  & 2     & 1     & 7+N   \\ \hline
         \end{tabular}
-        \caption{UART 数据帧格式表} \label{FPM383F::UARTdataFrame}
     \end{table}
     
     根据 FPM383F 通信协议的设定，应用层面其实由两种类型的命令构成。一种是主机向从机发送的请求，如图 \ref{FPM383F::UARTUserRequest}
@@ -237,22 +237,22 @@
 
     \begin{table}[H]
         \centering
+        \caption{UART 请求格式表} \label{FPM383F::UARTUserRequest}
         \begin{tabular}{lllll}
         \hline
         \multicolumn{1}{c}{格式} & 校验密码 & 命令 & 数据内容        & 校验和 \\ \hline
         长度(Byte)                 & 4    & 2  & N(0$\sim$n) & 1   \\ \hline
         \end{tabular}
-        \caption{UART 请求格式表} \label{FPM383F::UARTUserRequest}
     \end{table}
 
     \begin{table}[H]
         \centering
+        \caption{UART 响应格式表} \label{FPM383F::UARTUserResponse}
         \begin{tabular}{llllll}
         \hline
         \multicolumn{1}{c}{格式} & 校验密码 & 命令 & 错误码 & 数据内容        & 校验和 \\ \hline
         长度(Byte)                 & 4    & 2  & 4   & N(0$\sim$n) & 1   \\ \hline
         \end{tabular}
-        \caption{UART 响应格式表} \label{FPM383F::UARTUserResponse}
     \end{table}
 
     我这里采用我实现过程中相对比较复杂的一个部分，对于主从机响应的整个过程进行说明，如图\ref{FPM383F::DownloadFingerPrintInfo}所示。
@@ -264,8 +264,8 @@
 
     \begin{figure}[H]
         \centering
-        \caption{指纹信息下载}    \label{FPM383F::DownloadFingerPrintInfo}
         \includegraphics[scale=0.4]{./imgs/指纹信息下载.jpg}
+        \caption{指纹信息下载}    \label{FPM383F::DownloadFingerPrintInfo}
     \end{figure}    
 
     \subsubsection{实现说明}

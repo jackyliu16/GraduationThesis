@@ -238,6 +238,7 @@ CREATE TABLE IF NOT EXISTS signIn (
         该部分通过分析返回包中的ID和注册进度进行操作，在注册进度达到 0x64 时终止注册流程。
 
         \begin{table}[htbp]
+            \caption{自动注册命令用户层帧} \label{uart::auto-register}
             \resizebox{\textwidth}{!}{%
                 \begin{tabular}{llllllll}
                 \hline
@@ -245,7 +246,6 @@ CREATE TABLE IF NOT EXISTS signIn (
                 0x00 0x00 0x00 0x00        & 0x01  & 0x18 & 0x01 & 0x06 & 0xFF  & 0xFF  & 0xE2 \\ \hline
                 \end{tabular}
             }
-            \caption{自动注册命令用户层帧} \label{uart::auto-register}
         \end{table}
 
         在注册完成之后，通过上载命令\ref{uart::upload-info}，向指纹模块获取特定 ID 号的指纹特征信息长度，
@@ -254,23 +254,24 @@ CREATE TABLE IF NOT EXISTS signIn (
         下载到树莓派对应的指纹模块上，由此完成了一次标准的指纹注册功能。
 
         \begin{table}[htbp]
-                \centering
-                \begin{tabular}{llllll}
-                \hline
-                \multicolumn{1}{c}{校验密码} & CMD类型 & CMD号 & ID\_H & ID\_L & 校验和  \\ \hline
-                0x00 0x00 0x00 0x00        & 0x01  & 0x53 & 0x00  & 0x01  & 0xAB \\ \hline
-                \end{tabular}
-             \caption{获取上传信息命令用户层帧} \label{uart::upload-info}
+            \centering
+            \caption{获取上传信息命令用户层帧} \label{uart::upload-info}
+            \begin{tabular}{llllll}
+            \hline
+            \multicolumn{1}{c}{校验密码} & CMD类型 & CMD号 & ID\_H & ID\_L & 校验和  \\ \hline
+            0x00 0x00 0x00 0x00        & 0x01  & 0x53 & 0x00  & 0x01  & 0xAB \\ \hline
+            \end{tabular}
         \end{table}
 
         \begin{table}[htbp]
+            \caption{获取指纹特征命令用户层帧} \label{uart::upload-data}
             \resizebox{\textwidth}{!}{%
             \begin{tabular}{llllllll}
                 \hline
                 \multicolumn{1}{c}{校验密码} & CMD类型 & CMD号 & ID\_H & ID\_L & NUM\_H & NUM\_L & 校验和  \\ \hline
                 0x00 0x00 0x00 0x00        & 0x01  & 0x51 & 0xFF  & 0xFF  & 0x00   & 0x00   & 0xAC \\ \hline
                 \end{tabular}
-            } \caption{获取指纹特征命令用户层帧} \label{uart::upload-data}
+            } 
         \end{table}
 
         \item[指纹删除] 在上位机中完成指纹删除操作，通过下行 Udp 包，删除指纹模块中对应 ID 的指纹特征信息。
@@ -279,13 +280,14 @@ CREATE TABLE IF NOT EXISTS signIn (
         同时将删除指纹特征编号的命令通过下面的指令\ref{指纹特征清除}经由树莓派下发到指纹终端，根据不同的需求，在下面的帧中配置不同的格式。
 
         \begin{table}[H]
+            \caption{指纹特征清除} \label{指纹特征清除}
             \resizebox{\textwidth}{!}{%
                 \begin{tabular}{lllllll}
                 \hline
                 \multicolumn{1}{c}{校验密码} & CMD类型 & CMD号 & CL\_FLAG & ID\_H & ID\_L & 校验和  \\ \hline
                 0x00 0x00 0x00 0x00        & 0x01  & 0x51 & 03       & 0xFF  & 0xFF  & 0xAC \\ \hline
                 \end{tabular} 
-            } \caption{指纹特征清除} \label{指纹特征清除}
+            } 
         \end{table}
 
         \item[指纹考勤登记] 在下位机从属指纹模块中完成基于指纹的考勤实现。
@@ -300,22 +302,23 @@ CREATE TABLE IF NOT EXISTS signIn (
 
         \begin{table}[H]
             \centering
+            \caption{询问是否匹配，查询匹配结果} \label{询问是否匹配}
             \begin{tabular}{llll}
             \hline
             \multicolumn{1}{c}{校验密码} & CMD类型 & CMD号    & 校验和  \\ \hline
             0x00 0x00 0x00 0x00        & 0x01  & 0x21 / 0x22 & 0xAC \\ \hline
             \end{tabular}
-            \caption{询问是否匹配，查询匹配结果} \label{询问是否匹配}
         \end{table}
 
         \begin{table}[H]
+            \caption{匹配应答包格式} \label{匹配应答包}
             \resizebox{\textwidth}{!}{%
                 \begin{tabular}{llllllll}
                 \hline
                 \multicolumn{1}{c}{校验密码} & CMD类型 & CMD号 & 错误码                 & 匹配结果      & 匹配分数      & 匹配ID      & 校验和  \\ \hline
                 0 0 0 0        & 0x01  & 0x51 & 0 0 0 0 & 0x00 0x01 & 0x27 0x0F & 0x00 0x03 & 0xAC \\ \hline
                 \end{tabular} 
-            }  \caption{匹配应答包格式} \label{匹配应答包}
+            }  
         \end{table}
 
         \item[考勤记录读取] 根据一般企事业单位的考勤系统的历史发展来看，读取员工考勤记录属于考勤系统的必备功能。
