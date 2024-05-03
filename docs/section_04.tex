@@ -1,72 +1,238 @@
-\section{设计结果论述与不足思考}
+\section{软件测试}
 
-    指纹考勤系统以树莓派4B（BCM2711）为核心，包括以下组件：
-    指纹传感器HLK-FPM383C、
-    基于树莓派板载BCM54213PE PHY芯片的通信模块，
-    以及由上位机提供的数据存储，日志记录的部分。\\
+    根据本次毕业设计中的实现内容，软件测试主要分为两大部分，系统功能模块测试及系统整体测试，其中功能模块测试主要包含
+    指纹识别模块测试，网卡驱动测试，网络协议栈集成测试几个部分。
 
-    \noindent 全文主要完成了以下六个方面的工作：
+    \subsection{指纹识别模块测试}
 
-    \begin{itemize}
-        \item 完成了指纹考勤系统整体设计，对于一个最简易的单片机指纹考勤系统进行了需求分析。
-        \item 完成了指纹考勤系统硬件电路设计。主要包括主控模块与信号回返模块，串口输入模块之间的硬件电路设计。
-        \item 在组件化操作系统 ArceOS 上仿照树莓派官方 linux 内核中驱动相关实现，实现并整合了一个能运行的以太网驱动，
-            该驱动实现了以太网物理层与数据链路层之间的通信，
-            嵌入式裸机应用程序可以深度集成到ArceOS中，调用由 ArceOS 实现的 Tcp/Udp 以太网协议栈以在应用层面调用 UdpSocket 所提供的服务编译成一个完整的单一用途裸机应用程序。
-            通过这个以太网驱动，可以实现下位机与上位机之间的以太网帧通信\ref{fig::树莓派通信正常}。
-        \item 将上述以太网驱动与 ArceOS 中提供上层网络包装的 axnet module\footnote{基于smlotcp的实现} 进行结合，
-            实现了基于 UdpSocket 的发包功能。
-        \item 在组件化操作系统 ArceOS 中，基于自建 UART 串口驱动与FPM383模组通信协议\cite{fpm383c-modular-communication-protocol}，
-            实现了 ArceOS 的指纹模块，能基于串口信号传输，实现简单的如LED亮灯，要求FPM383C模块进行指纹匹配，
-            对于收到的指纹匹配结果进行分析等功能。
-        \item 根据上述指纹考勤系统设计需求，实现了一个基于 ArceOS 改写标准库的裸机应用程序。
-    \end{itemize}
+    本测试主要在上位机中进行，主要目的在于证明可以通过指纹管理程序在不影响指纹识别的情况下
+    对于指纹特征数据进行上传和下载（见图\ref{总体设计图}）右侧上位机与 FPM383C 之间的连线。
 
-    \noindent 实现的不足之处：
+    \subsubsection*{测试准备：}
+    硬件层面上需要使用 CH340 TTL转USB模块，杜邦线，指纹识别模块，开发板。
+    软件层面上不需要额外准备，直接采用 chainboot 显示对应输出即可。
 
-    \begin{itemize}
-        \item 参照树莓派 linux 内核中以太网卡实现的部分操作还没有调通，从 BCM54213PE PHY 芯片所返回的状态检查一直
-        显示当前链路状态未建立，查阅了全部可能有关的状态寄存器，仍然无法明确具体这种情况是由什么原因导致的。
-        幸运的是，在深入研究时我发现了一个名为 rpi4-rust-workspace 的代码仓库 \cite{rpi4-rust-workspace}，
-        在这个最后更新于 20 年的仓库中提供了一个相较于我实现更为完善的以太网卡驱动，只不过由于仓库维护者太久没有进行维护，
-        在仓库中所引用的很多 rust 语言的方法没有办法在 ArceOS 所支持的 rust 工具链中正常运行。
-        同时，仓库中也存在着很多由于维护者直接将 rpi3 版本中寄存器复制到 rpi4 版本的过程中没有详细检查寄存器等调用是否一致所导致的问题，
-        比如说在 UART 驱动实现所牵涉到的 GPIO 部分\footnote{根据 FPM383C 模块说明，必须要在Rx设定上拉电阻}，维护者直接将在
-        rpi3(bcm2835) 使用的 GPIO Pull-up/down Register 也就是 GPPUD 寄存器等寄存器规约复制到了 rpi4(bcm2711)
-        中\cite{raspberry-pi-bcm2835}。但是，树莓派 4 中采用了另外的一组寄存器 GPIO\_PUP\_PDN\_CNTRL\_REG0 来控制上拉下拉电阻
-        \cite{raspberry-pi-bcm2711}，二者类型不同，起始地址也不同。
-        亦或是由于作者实现串口驱动的目的在于通过串口反馈简单字符串，并没有考虑到在大信息通量下的数据获取问题，因此没有启用 FIFO 等。
-        \item 由于时间因素的影响，并没有如同前面设计的那样，实现了多种不同的上位机，下位机通讯机制，只完成了基于 BCM54213PE 板载
-        PHY 芯片的网络通信机制实现。
-        \item 在实现树莓派经由 BCM54213PE PHY 芯片与上位机进行通信的时候，由于时间因素的影响
-        \footnote{就目前来看可能还需要 4 天以上的工作量}，
-        未能详细的对于 ArceOS 内部实现以太网协议栈的部分进行详细分析，因此在树莓派中接受网络包的时候仍存在一定问题，
-        在实现指纹注册并下发的工况中
-        \footnote{上位机中 python 后端程序调用串口，从上位机从属指纹识别模块获取指纹特征信息，并将对应指纹特征信息下发到树莓派从属指纹识别模块中}
-        树莓派上所运行的应用程序没有办法正常通过 ArceOS 提供的 UdpSocket 中收到对应数据包
-        \footnote{但是可以直接收对应的以太网帧，以太网帧的数据可以被正确接收，理论上可以直接越过 UDP 包头强行实现后面的内容，
-        所以这个部分只能算缺陷}。
+    经串口发送亮灯信号，对应指纹模块亮灯可见指纹识别模块能与计算机和树莓派建立有效的串口连接。
 
-        具体问题应该出在对于 module::axnet 与 BCM54213PE 驱动在 crates::driver\_net 兼容层中的实现上。
-        根据目前 BCM54213PE 驱动的实现，任何通过以太网接口发送到树莓派 4B 设备上的信息，都会由树莓派内部的 dma 控制器自动
-        存储到 BCM54213PE 驱动内部的缓存空间 tx/rx\_mem，也就是前文 \ref{pict:DmaDescAndLoop} 所提到的 DMA 环
-        中各个 Description 所指向的缓存空间 \footnote{[0u8; 0x2000] 的 buffer}。
-        实际上我们直接调用由 BCM54213PE 驱动提供的 receive 功能相当于从
-        已经写入的 Buffer 中返回一个指向 tx/rx Buffer 的引用\footnote{循环链表，通过指针指向下一个需要读取的位置}，
-        而并非类似于我在 FPM383C 驱动中实现的那种阻塞，等待收到一个网络包后再返回的情况
-        \footnote{由于在与 FPM383C 驱动通信的情况下，只要发送的数据包格式正确，一定能收到对应的应答包，因此才可以使用阻塞的办法，
-        此处由于不能确定什么时候上位机向下位机传输数据，因此不能直接采取阻塞的办法}。
+    \subsubsection{指纹注册测试}
+    
+    由于按照目前设计，指纹注册功能在上位机中实现。在正确注册指纹之后，通过调用协议使指纹模块上传
+    指纹特征信息到上位机，通过 UdpSocket 将对应数据包中信息整合后经过网络分发到下位机。
+    \footnote{在这段测试中，由于经由网络下发指纹特征信息由于量太多不太容易进行呈现，暂且不进行相关演示}
 
-        但是，ArceOS 内部基于 smoltcp 的以太网协议栈中通过 Tx/RxToken 这种用过即毁的 traits，提供的类似 Drop 方法，
-        要求我们在实现这个部分的时候，手动实现 alloc\_tx\_buffer, recycle\_tx/rx\_buffer 的方法，这与我们目前的
-        receive 操作流程不符。如果说直接将其嵌入到我们现有的 BCM54213PE 驱动中，还需要面临一系列的寄存器设置的问题，
-        可能需要等后期进一步实现才能完善这个部分的内容。
+    首先通过指纹识别模块配的客户端程序清空上位机从属指纹模块中的指纹模板（如图\ref{fig::清空指纹模板}）。
 
-        \item 在实现驱动的过程中面临着比较多的问题，同时由于 BCM54213PE 属于一种专有化的驱动，
-        并不如同 ENC28J60 一样常见，可能缺乏普遍性。
-        比如说由于 BCM54213PE 这款 PHY 芯片对应的底层信息尚未开源，无法通过查阅手册的方式
-        \footnote{目前只找到了基础 MDIO 通信手册，有且仅对调试过程提供了支持}
-        解决开发过程中遇到的比如说链路状态未正常建立的问题。同时，由于转写的时候不了解具体实现细节，大量的代码均依照树莓派 linux
-        内核内部宏定义通过类似于宏的 Rust 硬件抽象实现。在这种情况下，大量寄存器的操作是通过对绝对地址进行 volatile 读写方式实现的，
-        可能在其他开发板上进行复用的时候会面临一定程度上的困难。
-    \end{itemize}
+    \begin{figure}[ht]
+        \centering
+        \caption{清空指纹模板}    \label{fig::清空指纹模板}
+        \includegraphics[scale=0.8]{./imgs/清空指纹模板.png}
+    \end{figure}
+
+    将指纹模块插入到上位机中，通过在上位机中运行的简单注册终端进行注册。
+    首先，根据用户信息表（见表\ref{tab:userInfo}）中所设计的各项信息进行输入，在输入数据完成校验。
+    然后，管理程序调用指纹注册函数，函数在调用指纹模块的自动注册命令完成有关指纹模块的注册后
+    自动调用上传指令，
+    将对应数据由上位机从属指纹识别模块上传到上位机数据库中 Finger{id}Data 表中
+    （见图\ref{test::用户注册} \footnote{图中下半部分输出的字节数据分别代表由串口获取的完整特征信息和其中的指纹信息}），
+    并且根据数据库设计，自动完成 users，FingerInfo 等关联表的构建。
+
+    \begin{figure}[ht]
+        \centering
+        \caption{用户注册}    \label{test::用户注册} 
+        \includegraphics[width=\textwidth]{./imgs/测试-用户注册.png}
+    \end{figure}   
+
+    完成注册操作之后，由图\ref{test::注册后数据库查询} 可见，对应的表和关系已经正确构建。
+    下图中对 FingerInfo 表的查询体现了 finger\_id 0 与 user\_id 1 的映射关系，还保存了指纹特征 0 的长度信息，
+    注册的指纹特征信息二进制数据被保存在 Finger0Data 表中。
+
+    \begin{figure}[ht]
+        \centering
+        \caption{用户注册后数据库查询}    \label{test::注册后数据库查询}
+        \includegraphics[width=\textwidth]{./imgs/测试-注册后数据库查询.png}
+    \end{figure}   
+
+    \subsubsection{指纹删除}
+
+    指纹删除功能终端尚未实现，还需要一些时间。
+
+    \subsubsection{指纹下载}
+
+    本测试不属于指纹考勤管理系统的主要组成成分，主要目的在于测试在指纹特征数据的上传和下载中是否出现了信息丢失
+    导致指纹无法正常识别的现象。
+
+    首先，先根据指纹注册测试的方式或者是由指纹模块配的指纹管理程序完成指纹注册（见图\ref{fig::注册指纹}）后单独进行指纹上传操作。
+    然后，由指纹模块配的指纹管理程序删除注册的指纹（见图\ref{fig::清空指纹模板}）
+    \footnote{删除测试的方法会一并删除指纹特征文件与关联图等内容}。
+
+    \begin{figure}[ht]
+        \centering
+        \caption{指纹上传}    \label{test::指纹上传}
+        \includegraphics[width=\textwidth]{./imgs/测试-指纹上传.png}
+    \end{figure}   
+
+    \noindent
+    \begin{minipage}[t]{0.48\linewidth}
+        \captionof{figure}{指纹客户端注册指纹}    \label{fig::注册指纹}
+        \includegraphics[width=\textwidth]{./imgs/注册指纹.png}
+    \end{minipage}
+    % \quad
+    \begin{minipage}[t]{0.48\linewidth}
+        \captionof{figure}{指纹上传后查询与匹配}    \label{test::指纹上传后查询与匹配}
+        \includegraphics[width=\textwidth]{./imgs/测试-指纹上传后查询与匹配.png}
+    \end{minipage}
+
+    如图 \ref{test::指纹上传} 可见通过执行内置指纹上传函数实现的指纹上传输出，
+    其中 (10, [ ..., 0, 81, ... ]) 代表执行 upload 指令时的回返信息，
+    第一段数组代表由数据库中读取的二进制指纹特征信息(一帧)，
+    第二段字节代表整个由上位机经由串口下发到指纹识别模块的串口信息。
+
+    将指纹识别模块重新接入上位机中（如图\ref{test::指纹上传后查询与匹配}）可见，
+    之前删除的左手大拇指指纹已经重新被识别出来了，并且经过两次指纹匹配测试均能保证
+    识别准确率能够达到 100，这无疑证明了在指纹特征信息由指纹模块中上传再下载的过程中
+    并没有对于指纹特征信息的完整性进行破坏，上传再下载的行为也不会导致指纹特征信息被破坏。
+
+    \subsection{以太网卡驱动测试}
+
+    本测试主要目的在于通过测试实现的以太网驱动是否能够实现以太网帧的收发，
+    以及发送带宽说明以太网驱动实现的效果。
+
+    由于后面在将以太网卡驱动与 ArceOS 网络协议栈进行嵌合的时候对于以太网卡驱动进行了破坏性修改
+    \footnote{BCM54213PE驱动中调用ArceOS函数是通过PhantomData间接调用traits实现来完成的}。
+    因此，本次测试由完成了网络驱动测试的 \href{https://bitbucket.org/jackyliu16/arceos/commits/92e9b6abcdf180359381088552688c0fcbc83bf2}{commit} 
+    分叉出 \href{https://bitbucket.org/jackyliu16/arceos/commits/branch/ethernet-test}{ethernet-test}
+    分支，并在此分支中完成了对应测试。
+
+    \subsubsection{发包测试}
+
+    由树莓派向上位机直接发送以太网帧，在上位机中通过 wireshark 进行抓包（如图\ref{test::以太网通信正常}）
+
+    \begin{figure}[ht]
+        \centering
+        \caption{以太网帧通信正常}    \label{test::以太网帧发送}
+        \includegraphics[width=\textwidth]{./imgs/以太网帧通信正常.jpg}
+    \end{figure}   
+
+    \subsubsection{收包测试}
+
+    在树莓派上直接收包并打印对应信息（见图\ref{test::以太网帧接收}）。
+    由于目前树莓派并没有实现网络协议栈，因此
+    无法通过如 nc, nping 等基于网络的传输工具向树莓派发送自定义以太网帧。
+    因此，此处直接使用了 nc 随便发送了一段数据到树莓派中。
+    此处指定的网段与上，下位机网段一致，因此会在上位机的特定端口中释放 ARP 探寻包，
+    如图所示，对应的 ARP 探寻包被正确解析，因此可以浅薄的认为以太网驱动收包正常。
+
+    \begin{figure}[ht]
+        \centering
+        \caption{接受的以太网帧及解析} \label{test::以太网帧接收}
+        \begin{subfigure}
+            \centering
+            \includegraphics[width=\textwidth]{./imgs/测试-以太网帧接收.png}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}
+            \centering
+            \includegraphics[width=\textwidth]{./imgs/测试-以太网帧接收-解析.png}
+        \end{subfigure}
+    \end{figure}
+
+    \subsubsection{传输速率测试}
+
+    基于前面的测试，说明当前以太网帧的收发功能是正常的，此处使用一个简单的发送 buf
+    的循环尝试对于以太网驱动的传输速率进行测试。
+
+    从目前来看，在此次测试中有且存在两个变量， 一个是以太网帧的长度，另一个是每次发送之间的间隔。
+    在十秒钟内测试以太网驱动的最大每秒兆比特，并且根据其与 BCM54213PE PHY 芯片的
+    理论最高每秒兆比特进行对比，来说明以太网驱动的实现效果。
+
+    其中采用以太网帧大小作为其中的一个参数的主要原因在于需要对以太网驱动在帧间的消耗时间
+    进行评估，而发送时间间隔则是为了解决由于以太网帧在短时间内急剧增加，新增速率低于
+    消耗速率导致的溢出问题\footnote{在本驱动中尚没有考虑到这个问题的解决}。
+    具体测试记录见附表（TODO：将最终测试表插入到附录）。
+
+    $$\text{mbps} = \frac{\text{total\_bytes} \times 8.0}{\text{elapsed\_secs} \times 1,000,000.0}$$
+
+    根据测试记录分析，其中以太网帧大小与以太网帧传输速率之间存在对数关系（如图\ref{test::传输率与以太网帧大小}所示）
+    \footnote{横坐标为以太网帧长度，纵坐标为传输率}
+    但该对数关系在以太网帧长度为 375 字节时达到最高点 94.3 MBps，与 BCM54213PE 的理论最大
+    传输速率 125MBps 相差不大。在长度超过 375 字节之后，以太网帧长度再继续增加会产生未定义行为，
+    该行为具体表现为上位机 wireshark 只能按照规定长度抓到头几个包，后面的包似乎并没有被发送到上位机中。
+    同时，计算得出的每秒兆比特也远远超过了 BCM54213PE 的理论最大传输率，如以 512 字节的以太网帧， 间隔 10500 纳秒以下，计算结果为 149.21MBps，远远超过了 BCM54213PE 千兆网卡的理论最大传输率 125MBps。
+
+    \begin{figure}[ht]
+        \centering
+        \caption{传输率与以太网帧大小}    \label{test::传输率与以太网帧大小}
+        \includegraphics[width=\textwidth]{./imgs/测试-传输率与以太网帧大小.png}
+    \end{figure}   
+
+    根据这样的测试结果，我提出了一个简单的设想，即产生这种现象的原因在于以太网驱动没能及时
+    将收到的包传输出去，导致后面的包实际上并没有被发送，而是在资源复用的时候被返回了。
+    因此，引入了传输延迟作为参数的一部分。
+
+    该参数虽然会导致同等情况下传输速率下降（如图\ref{test::传输延时与发送速率}所示）
+    ，但是他的引入可以使原先无法正常发送的以太网帧长度正常发送，如 376 字节的以太网帧在没有引入
+    传输延迟的时候是没有办法正常发包的，但是引入不到 150 纳秒的延时就可以使之正常运行，从某种程度上
+    来说可以提升网络传输效率。
+
+    \begin{figure}[ht]
+        \centering
+        \caption{传输延时与传输速率}    \label{test::传输延时与发送速率}
+        \includegraphics[width=\textwidth]{./imgs/测试-传输延时与发送速率.png}
+    \end{figure}   
+
+    \subsection{网卡协议栈集成测试}
+
+    通过双绞线将树莓派的 RJ45 网口与笔记本端口相连，在笔记本上运行 server.py 程序（打开 5555 端口）
+    清空所有防火墙设置，并且设置端口 5555 的出入站规则，将笔记本以太网网卡 ip 地址设置为
+    树莓派默认 ip 地址 10.0.2.15 同一网段下的 10.0.2.16\footnote{见指纹识别模块flakes初始化语句}。
+
+    \subsubsection{Udp 发包测试}
+
+    在应用程序中，使用 axstd 替代 rust std 库，创建 UdpSocket，调用 sendto 方法，
+    向上位机的 5555 端口发送测试连接字节数组（如图\ref{test::Udp发包}所示）。
+
+    \begin{figure}[ht]
+        \centering
+        \caption{Udp发包正常}    \label{test::Udp发包}
+        \includegraphics[width=\textwidth]{./imgs/测试-udp发包正常.png}
+    \end{figure}   
+
+    \subsubsection{Udp 收包测试}
+
+    UdpSocket 收包测试我主要根据两种常见的网络联通方式进行测试，即 Netcat 和 ping。
+    首先，针对 ARP，ICMP 包的测试（如图\ref{test::pingICMP回返测试}所示）。
+    其中左上角是串口面板，右上角是正在运行中的 server.py 程序，左下角是
+    执行的指令，即 ping 10.0.2.15。
+    
+    根据 ping 的一般操作流程，首先上位机中会先通过 ARP 探寻包，询问 10.0.2.15
+    IP 地址所对应的硬件 MAC 地址，在下位机回返 MAC 地址后，连接被建立。
+    上位机发送 ICMP Echo 请求到下位机，下位机以太网协议栈对收到的 ICMP 包进行处理，
+    发送 ICMP Echo 作为回复。
+
+    \begin{figure}[ht]
+        \centering
+        \caption{ping 回返测试}    \label{test::pingICMP回返测试}
+        \includegraphics[width=\textwidth]{./imgs/测试-pingICMP回返测试.png}
+    \end{figure}   
+
+    然后，根据指纹考勤系统由上位机经由网络向下位机发送指纹信息的需求，
+    我对于 Udp 连接进行了简单的测试。即通过 netcat 直接将一个字节数组
+    （指纹模块的 LED 控制信号）
+    由上位机传输到下位机，由图\ref{test::接收netcat数据}所示，下位机中
+    缓冲区的字节数据与上位机中通过 netcat 传输的字节数据完全一致
+    \footnote{这个地方没有对边界进行判断，直接打印了整个缓冲区}。
+
+    \begin{figure}[ht]
+        \centering
+        \caption{接收netcat数据}    \label{test::接收netcat数据}
+        \includegraphics[width=\textwidth]{./imgs/测试-接收netcat数据.png}
+    \end{figure}   
+
+    \subsubsection{传输速率测试}
+
+    尚未完成，目前仅测试 120\_000 纳秒传输延时情况下传输速率
+    最大能达到 53.64 MBps。
+
+    \subsection{集成测试}
+
+    尚未完成
