@@ -152,33 +152,81 @@
 
     $$\text{mbps} = \frac{\text{total\_bytes} \times 8.0}{\text{elapsed\_secs} \times 1,000,000.0}$$
 
-    根据测试记录分析，其中以太网帧大小与以太网帧传输速率之间存在对数关系（如图\ref{test::传输率与以太网帧大小}所示）
-    \footnote{横坐标为以太网帧长度，纵坐标为传输率}
-    但该对数关系在以太网帧长度为 375 字节时达到最高点 94.3 MBps，与 BCM54213PE 的理论最大
-    传输速率 125MBps 相差不大。在长度超过 375 字节之后，以太网帧长度再继续增加会产生未定义行为，
-    该行为具体表现为上位机 wireshark 只能按照规定长度抓到头几个包，后面的包似乎并没有被发送到上位机中。
-    同时，计算得出的每秒兆比特也远远超过了 BCM54213PE 的理论最大传输率，如以 512 字节的以太网帧， 间隔 10500 纳秒以下，计算结果为 149.21MBps，远远超过了 BCM54213PE 千兆网卡的理论最大传输率 125MBps。
+    根据测试记录（见附录分析，其中以太网帧大小与以太网帧传输速率之间存在对数关系（如图\ref{test::传输率与以太网帧大小}所示）
+    对数关系在以太网帧长度为 375 字节时达到最高点 94.3 MBps，与 BCM54213PE 千兆网卡的理论最大
+    传输速率 125MBps 相差不大。但在长度超过 375 字节之后，以太网帧长度再继续增加会产生未定义行为，
+    该行为具体表现为上位机 wireshark 只能按照规定长度抓到头几个包，后面的包没有被发送到网络中。
+    同时，计算得出的每秒兆比特也远远超过了 BCM54213PE 的理论最大传输率，
+    如以 512 字节的以太网帧，间隔 10500 纳秒以下，
+    计算结果为 149.21MBps，远远超过了千兆网卡的理论最大传输率 125MBps。
 
-    \begin{figure}[ht]
+    \begin{tikzpicture}
         \centering
-        \includegraphics[width=\textwidth]{./imgs/测试-传输率与以太网帧大小.png}
-        \caption{传输率与以太网帧大小}    \label{test::传输率与以太网帧大小}
-    \end{figure}   
+        \begin{axis}[
+            xlabel={以太网帧大小}, ylabel={传输速率},
+            xmin=0,
+            width=0.8\textwidth,
+            legend pos=north east,
+            grid=both
+        ]
+        
+        \addplot[only marks
+        , mark=*
+        , blue
+        ] table [x=EthPackSize, y=AvgBandwidth, col sep=comma] {./imgs/测试记录-传输率与以太网帧.csv};
+        \addlegendentry{测试数据}
+        
+        % 添加趋势线 A + B * Exp(c * X)
+        \addplot[thick, green, domain=64:1000] {94.66701212555364 - 43.26235037169133 * exp(-0.010715300001686431 * x)};
+        \addlegendentry{指数趋势线}
+
+        % \addplot[dashed, black, thick] coordinates {(64, -10) (64, 100)}; % 调整 y 范围以适应图表
+        % \node at (axis cs:64, 100) [anchor=north] {64};
+        
+        \end{axis}
+    \end{tikzpicture}
+    \captionof{figure}{传输率与以太网帧大小}    \label{test::传输率与以太网帧大小}
+
+    % \begin{figure}[ht]
+    %     \centering
+    %     \includegraphics[width=\textwidth]{./imgs/测试-传输率与以太网帧大小.png}
+    %     \caption{传输率与以太网帧大小}    \label{test::传输率与以太网帧大小}
+    % \end{figure}   
 
     根据这样的测试结果，我提出了一个简单的设想，即产生这种现象的原因在于以太网驱动没能及时
-    将收到的包传输出去，导致后面的包实际上并没有被发送，而是在资源复用的时候被返回了。
-    因此，引入了传输延迟作为参数的一部分。
+    将收到的包传输出去，导致后面的包实际上并没有执行发送行为，而是在资源复用的时候被阻挡自动返回了。
+    因此，引入了传输延迟作为参数的一部分以方便对于最大传输率进行测试。
 
-    该参数虽然会导致同等情况下传输速率下降（如图\ref{test::传输延时与发送速率}所示）
+    该参数虽然会导致同等情况下传输速率下降（如图\ref{test::传输率与发送延迟}所示）
     ，但是他的引入可以使原先无法正常发送的以太网帧长度正常发送，如 376 字节的以太网帧在没有引入
-    传输延迟的时候是没有办法正常发包的，但是引入不到 150 纳秒的延时就可以使之正常运行，从某种程度上
+    传输延迟的时候是没有办法正常完成发送的，但是引入不到 150 纳秒的延时就可以使之正常运行，同时还提升了传输速率到 94 MBps，从某种程度上
     来说可以提升网络传输效率。
 
-    \begin{figure}[ht]
+    \begin{tikzpicture}
         \centering
-        \includegraphics[width=\textwidth]{./imgs/测试-传输延时与发送速率.png}
-        \caption{传输延时与传输速率}    \label{test::传输延时与发送速率}
-    \end{figure}   
+        \begin{axis}[
+            xlabel={发送延迟}, ylabel={传输速率},
+            xmin=0,ymax=100,
+            width=0.8\textwidth,
+            legend pos=north east,
+            grid=both
+        ]
+        
+        \addplot[only marks
+        , mark=*
+        , blue
+        ] table [x=Delay, y=Bandwidth with 128 EthPackSize, col sep=comma] {./imgs/测试记录-传输率与传输延迟.csv};
+        \addlegendentry{测试数据}
+        
+        % 添加趋势线 A + B * Exp(c * X)
+        % \addplot[thick, green, domain=0:1000000] {660066.98 * x^-0.96};
+        \addplot[thick, green, domain=10000:1000000] {839028.750214695 * x^-0.983848891456114};
+        % \addplot[thick, green, domain=0:1000000] {7.2132943561133525 + 130.53328368716328 * exp(-0.000052669151121911975 * x)};
+        \addlegendentry{指数趋势线}
+
+        \end{axis}
+    \end{tikzpicture}
+    \captionof{figure}{传输率与发送延迟}    \label{test::传输率与发送延迟}
 
     \subsection{网卡协议栈集成测试}
 
