@@ -144,3 +144,181 @@ dma_ctrl |= (1 << (i + DMA_RING_BUF_EN_SHIFT));
     ...
   ], CS_DMA4 [ ... ] ...}
 \end{lstlisting}
+
+\begin{lstlisting}[language=C
+  , style=CStyle
+  , label={code::eth-send}
+  , caption=Ethernet Send Packet SpeedTest]
+  // include ...
+  int send_test(double duration, int frame_len) {
+      assert(frame_len >= ETH_ZLEN);
+      assert(frame_len <= ETH_FRAME_LEN);
+  
+      int sockfd;
+      struct ifreq if_idx;
+      struct sockaddr_ll socket_address;
+      // char *interface = "eth0";
+      char *interface = "enp0s20f0u2c2";
+      unsigned char src_mac[6] = {0xd8, 0x3a, 0xdd, 0x7f, 0xdd, 0x38};
+      unsigned char dest_mac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // Broadcast address
+      unsigned char ether_frame[ETH_FRAME_LEN];
+      time_t start_time, current_time;
+      unsigned long long frame_count = 0;
+      unsigned long long total_bytes = 0;
+  
+      printf("\nRunning Ethernet Send Packet SpeedTest, waiting for %.2f for complete the test.\n", duration);
+  
+      // 创建原始套接字
+      if ((sockfd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) < 0) {
+          perror("socket");
+          exit(1);
+      }
+  
+      // 获取网络接口索引
+      memset(&if_idx, 0, sizeof(struct ifreq));
+      strncpy(if_idx.ifr_name, interface, IFNAMSIZ-1);
+      if (ioctl(sockfd, SIOCGIFINDEX, &if_idx) < 0) {
+          perror("SIOCGIFINDEX");
+          exit(1);
+      }
+  
+      // 构建目的地址结构体
+      memset(&socket_address, 0, sizeof(struct sockaddr_ll));
+      socket_address.sll_ifindex = if_idx.ifr_ifindex;
+      socket_address.sll_halen = ETH_ALEN;
+      memcpy(socket_address.sll_addr, dest_mac, 6);
+  
+      // 构建以太网帧
+      memcpy(ether_frame, dest_mac, 6);
+      memcpy(ether_frame + 6, src_mac, 6);
+      ether_frame[12] = 0x08; // Type: 0x0800 IP
+      ether_frame[13] = 0x01;
+  
+      start_time = time(NULL);
+      do {
+          // init counter 
+          char convertBuffer [64] = {0};
+          snprintf(convertBuffer, sizeof(convertBuffer), "%llu", frame_count);
+          memcpy(ether_frame + 16, convertBuffer, 64);
+          // send ethernet packet
+          if (sendto(sockfd, ether_frame, frame_len, 0, (struct sockaddr*)&socket_address, sizeof(struct sockaddr_ll)) < 0) {
+              perror("sendto");
+              exit(1);
+          } else { total_bytes += frame_len; }
+  
+          frame_count++;
+          current_time = time(NULL);
+      } while (difftime(current_time, start_time) < duration);
+  
+      printf("Ethernet frame sent successfully\n");
+  
+      // double seconds = current_time - start_time + (current_time - start_time) / 1000000.0;
+      double rate_mbps = (total_bytes * 8) / (duration * 1000000.0); // total_bytes * 8 / 10 * 1000_000
+  
+      printf("Sent %lld frames in %.2f seconds\n", frame_count, duration);
+      printf("Sent %llu bytes in total, rate: %.2f MBps\n", total_bytes, rate_mbps);
+  
+  
+      close(sockfd);
+      return 0;
+  }
+  
+  int main() {
+      send_test(10.0, ETH_ZLEN);
+  }
+  
+  
+\end{lstlisting}
+
+\begin{lstlisting}[language=C
+  , style=CStyle
+  , label={code::eth-recv}
+  , caption=Ethernet Recv Packet]
+// include ...
+int recv_loop(double duration) {
+    int sockfd;
+    char buffer[65535];
+    struct sockaddr_ll addr;
+    socklen_t addr_len = sizeof(struct sockaddr_ll);
+    int capture_started = 0;
+    time_t start_time, current_time;
+    unsigned long long frame_count = 0;
+    unsigned long long loss_count = 0;
+    unsigned long long total_bytes = 0;
+
+    // 指定要监听的网络接口
+    const char *interface = "enp0s20f0u2c2";
+
+    // 创建原始套接字
+    if ((sockfd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) == -1) {
+        perror("socket");
+        return 1;
+    }
+
+    // 绑定到指定的接口
+    struct sockaddr_ll sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sll_family = AF_PACKET;
+    sa.sll_ifindex = if_nametoindex(interface);
+    sa.sll_protocol = htons(ETH_P_ALL);
+    if (bind(sockfd, (struct sockaddr*)&sa, sizeof(sa)) == -1) {
+        perror("bind");
+        close(sockfd);
+        return 1;
+    }
+
+    printf("绑定成功\n");
+
+    // 开始捕获数据包
+    while (1) {
+        // 接收以太网帧
+        ssize_t num_bytes = recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&addr, &addr_len);
+        if (num_bytes == -1) {
+            perror("recvfrom");
+            break;
+        }
+
+        struct ethhdr *eth = (struct ethhdr *) buffer;
+
+        // 在接收到第一个以太网帧后开始计时
+        if (!capture_started) {
+            start_time = time(NULL);
+            capture_started = 1;
+        }
+
+        // 检查计时器，10 秒后停止
+        current_time = time(NULL);
+        if (difftime(current_time, start_time) > duration) {
+            break;
+        }
+
+        if (ntohs(eth->h_proto) == 0x0801) {
+            // handle cnt
+            char ConvertBuffer[16] = {0};
+            memcpy(&ConvertBuffer, &buffer[16], 8);
+            unsigned long long cnt = 0;
+            sscanf(ConvertBuffer, "%llu", &cnt);
+
+            printf("except: %llu, get: %llu\n", frame_count, cnt);
+            if (cnt != frame_count) {
+                printf("Loss %llu:%llu-%llu package\n", frame_count - cnt, frame_count, cnt);
+                loss_count += frame_count - cnt;
+                frame_count = cnt;
+            }
+
+            frame_count++;
+            total_bytes += num_bytes;
+        }
+    }
+
+    printf("Received %lld frames (%lld bytes) and loss %llu package in 10 seconds.\n", frame_count, total_bytes, loss_count);
+    double rate_mbps = (total_bytes * 8) / (duration * 1000000.0); // total_bytes * 8 / 10 * 1000_000
+    printf("mbps: %f\n", rate_mbps);
+    close(sockfd);
+    return 0;
+}
+
+int main() {
+    recv_loop(10);
+}  
+\end{lstlisting}
