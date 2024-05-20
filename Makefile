@@ -16,7 +16,8 @@
 # -------------------------------------------------------------------------------- 
 PACK_NAME ?= main
 SUBSTITUTERS := --option substituters https://mirror.sjtu.edu.cn/nix-channels/store
-DEFAULT_PDF_READER := xdg-open
+# DEFAULT_PDF_READER := xdg-open
+DEFAULT_PDF_READER := evince 
 
 # -------------------------------------------------------------------------------- 
 # PDF documents relative 

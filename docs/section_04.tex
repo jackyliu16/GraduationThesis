@@ -94,44 +94,36 @@
 
     \subsection{以太网卡驱动测试}
 
-    本测试主要目的在于通过测试实现的以太网驱动是否能够实现以太网帧的收发，
-    以及发送带宽说明以太网驱动实现的效果。
-
-    本章节的主要呈现流程如下：首先，先通过两台通用 PC 机对于测试与接收程序的效果进行分析，
-    然后将对应接收脚本转移到 树莓派 Linux 环境下进行本地编译收发包测试，
-    虽然固然存在 C，Rust 所导致的差异，但是由于 C 语言标准库尚未提供对于以太网帧的直接收发功能
-    因此没有办法在以太网帧层面进行 Rust 下的对比。
+    在本章节中主要完成了对于网卡驱动的测试工作，其中首先在两台 PC 电脑之间运行 C 语言的收发包脚本，对于脚本
+    的功能以及效果进行测试，然后在树莓派原生 Linux 下运行发包脚本，PC 电脑上运行收报脚本以对于树莓派的传输速率进行分析，
+    最后，在 ArceOS 上直接发送以太网帧到 PC 机上的接受脚本中测试 ArceOS 网卡驱动的收发包效果。
 
     \subsubsection{测试脚本测试}
 
-    按照一开始的测试计划，应该采用两台电脑进行测试，一台电脑通过 WSL(windows subsystem of linux) 
+    按照测试计划，采用两台电脑先对测试脚本本身能否完整实现功能进行测试，一台电脑通过 WSL(windows subsystem of linux) 
     运行 linux 测试发包脚本，另外一台笔记本通过 RJ45转USB模块\footnote{或者说叫做usb网卡}
-    经由双绞线与前者进行连接。
+    经由双绞线与前者进行连接，接受对应数据包。
 
-    但是按照这种操作流程进行测试的时候，实际上并没有办法实现以太网帧的收发，
+    但是进行测试的时候，实际上并没有办法实现以太网帧的收发，
     经过分析之后发现产生这种问题的主要原因的是 WSL 与 宿主机 之间的网络连接方式是通过
-    类似于 NAT 的方式进行连接的，在这种情况下，WSL 与 宿主机之间存在一个子网，因此
+    类似于 NAT(Network address translation) 的方式进行连接的，在这种情况下，WSL 与 宿主机之间存在一个子网，因此
     在 WSL 中在以太网帧层面实现的收发只能在，并不能在宿主机上获得转发，因此
-    另外一台 linux PC 没有办法收到对应以太网帧。
-    \footnote{IP层以上的包会自动被转发，但以太网帧不会}
+    另外一台 linux PC 没有办法收到对应以太网帧
+    \footnote{IP层以上的包会自动被转发，但以太网帧不会}。
 
-    最终，采用了两台运行 linux 操作系统的电脑进行此测试（其中一台采用 nixos live，一台是 nixos）。
+    最终，采用了两台运行 linux 操作系统的电脑进行此测试（其中一台采用 nixos live，一台是 nixos）其连接如下图 \ref{tests::测试脚本测试连接图}所见。
     \footnote{由于其中一台仍通过 RJ45转USB模块 实现网络收发功能同时配有百兆网卡，因此本次测试中的最高传输速率仅为100mbps}
     二者均在完全关闭防火墙，配置对应以太网卡的 ip 地址，并实现相互 ping 之后展开测试。
     发包侧（如附录代码段 \ref{code::eth-send}）在十秒内持续发送以太网帧，并且在以太网帧的第 16 位开始的八个字节添加代表当前以太网帧序号的八个字节 (unsigned long long)数据。
     收包侧（如附录代码段 \ref{code::eth-recv}）按照对应收包顺序与检测出的序号综合进行判断在传输过程中是否存在丢包，乱序的情况。
 
-    其中初步测试情况说明可能存在三种情况：
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[scale=0.6]{imgs/测试脚本测试连接图.jpg}
+        \caption{测试脚本测试连接图}    \label{tests::测试脚本测试连接图}
+    \end{figure}
 
-    \begin{enumerate}
-        \item 收发端收发包数量一致当前测试完整完成。
-        \item 收发端数量不一致可能说明在收发的过程中存在由于溢出或其他原因导致的丢包情况
-        \item 收发端数量一致，但是存在丢包，可能说明 C 程序调用裸套接字实现以太网帧的发送过程中，
-        会自动调用对应的重发功能，从某种程度上可以证明传输的质量。
-    \end{enumerate}
-
-    具体测试结果见下\ref{tests::测试脚本测试}表，在以太网帧百兆层面不存在丢包的情况，
-    并且可以较好的实现前面所需求的测试结果。
+    具体测试结果见下 4-1 \ref{test::测试脚本测试}表，在以太网帧百兆层面不存在丢包的情况，可以较好的实现收发包测试效果。
 
     \begin{table}[ht]
     \centering
@@ -145,13 +137,27 @@
     本测试主要想要实现的效果在于测试出在树莓派直接采用 Linux 镜像原装的网卡驱动所能实现的传输效率，以方便与后面
     我们通过 Rust 在 ArceOS 裸机上实现的网卡驱动（以太网帧）测试出的收发效率进行对比。
 
-    具体操作流程基本上与前章节保持一致，除了其中一台百兆网卡的测试PC被更换成为了树莓派，
-    二者直接通过双绞线进行连接。
+    在具体测试操作上，除了其中一台百兆网卡的测试PC被更换成为了树莓派外基本与前章节（测试脚本测试）保持一致。
     
-    其中测试出以太网帧与传输速率直接的关系如下图 \ref{tests::Linux网卡驱动传输率与以太网帧大小} 所见，测试记录见附录表 2-1。
-    根据图所知，以太网帧大小与树莓派传输速率之间存在指数关系，
-    并且以太网帧越大，在同等时间内的以太网传输速率越大，在以太网帧层面网络传输速率最大能达到983.mbps，
-    接近树莓派千兆网卡的理论最大传输速率。
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[scale=0.6]{imgs/树莓派-测试机连接.jpg}
+        \caption{树莓派-测试机连接图}    \label{tests::树莓派测试机连接图}
+    \end{figure}
+
+
+    此处采用以太网帧作为其中一个测试参数主要是考量到在测试的过程中采用死循环不断发送的方法，
+    单个以太网帧长度越长，在发送该以太网帧花费的传输时间就越长
+    \footnote{由于拷贝，寄存器操作等导致}，
+    花费在帧与帧之间切换的时间就越短，更能测试出以太网驱动的极限网络吞吐量。
+
+    在进行测试的时候采用如下算法对于以太网传输速率进行评估，其中 total\_bytes 代表在测试时间内完成传输的总字节数，elapsed\_secs 代表总测试时间。
+    经过测试，（测试记录见附录表 \ref{tests::Linux驱动传输速率测试}），将每组数据取平均值之后可做出如下图像（如图 \ref{tests::Linux网卡驱动传输率与以太网帧大小} 所示）
+
+    由图可知，前文提出的以太网帧与网络传输速率之间的关系基本正确，二者存在指数关系，且以太网帧越大，在同等时间内的以太网传输速率越大。
+    在以太网帧层面网络传输速率最大能达到 983.21 MBps\footnote{以太网帧总长度 1500 字节情况下}，接近树莓派千兆网卡的理论最大传输速率 1000 MBps。
+
+    $$\text{mbps} = \frac{\text{total\_bytes} \times 8.0}{\text{elapsed\_secs} \times 1,000,000.0}$$
 
     \begin{tikzpicture}
         \centering
@@ -173,7 +179,7 @@
             (1408, 949.85)
             (1500, 946.8366667)
         };
-        \addlegendentry{发送速率}
+        \addlegendentry{发送端速率}
         
         \addplot[thick, mark=*, red] coordinates {
             (64, 112.3833333)
@@ -185,11 +191,24 @@
             (1408, 949.85)
             (1500, 938.5266667)
         };
-        \addlegendentry{接受速率}
+        \addlegendentry{接受端速率}
 
         \end{axis}
     \end{tikzpicture}
-    \captionof{figure}{树莓派Linux驱动传输率与以太网帧大小}    \label{test::Linux网卡驱动传输率与以太网帧大小}
+    \captionof{figure}{树莓派Linux驱动传输率与以太网帧大小关系图}    \label{tests::Linux网卡驱动传输率与以太网帧大小}
+
+    % TODO: 在前期测试中是可以正常发现对应丢包情况的发生的，但是不知道为什么后面无法重现这个问题，暂且删除这个部分的说明
+
+    % 在树莓派进行测试的过程中，根据序号与收包端收报次序的对比，C 接收端程序提示在本次测试中出现了丢包的情况。
+    % 经过 Wireshark 对比之后证实确实存在丢包情况。
+
+    % TODO: 在拷贝图片的时候两张图片是一致的li
+    % \begin{figure}[ht]
+    %     \centering
+    %     \includegraphics[width=\textwidth]{./imgs/丢包2.png}
+    %     \includegraphics[width=\textwidth]{./imgs/丢包1.png}
+    %     \caption{以太网帧发包测试}    \label{test::以太网帧发送}
+    % \end{figure}   
 
     \subsection{网卡驱动测试}
 
@@ -202,12 +221,12 @@
 
     \subsubsection{发包测试}
 
-    由树莓派向上位机直接发送以太网帧，在上位机中通过 wireshark 进行抓包（如图\ref{test::以太网通信正常}）
+    由树莓派向上位机直接发送以太网帧，在上位机中通过 wireshark 进行抓包（如图\ref{test::以太网帧发送}）
 
     \begin{figure}[ht]
         \centering
         \includegraphics[width=\textwidth]{./imgs/以太网帧通信正常.jpg}
-        \caption{以太网帧通信正常}    \label{test::以太网帧发送}
+        \caption{以太网帧发包测试}    \label{test::以太网帧发送}
     \end{figure}   
 
     \subsubsection{收包测试}
@@ -216,8 +235,9 @@
     由于目前树莓派并没有实现网络协议栈，因此
     无法通过如 nc, nping 等基于网络的传输工具向树莓派发送自定义以太网帧。
     因此，此处直接使用了 nc 随便发送了一段数据到树莓派中。
-    此处指定的网段与上，下位机网段一致，因此会在上位机的特定端口中释放 ARP 探寻包，
-    如图所示，对应的 ARP 探寻包被正确解析，因此可以浅薄的认为以太网驱动收包正常。
+    此处指定的网段与上，下位机网段一致，因此上位机会在同一子网中释放 ARP 探寻包，
+    如图 \ref{test::以太网帧接收} 所示，对应的 ARP 探寻包被正确解析，因此可以浅薄的认为以太网驱动可以正常的收到上位机传输的探寻包。
+    % TODO: 这个地方其实可以补测试，用前面测试脚本测试的 send_ethernet.c 来发
 
     \begin{figure}[ht]
         \centering
@@ -234,6 +254,15 @@
     \end{figure}
 
     \subsubsection{传输速率测试}
+
+    前面的测试说明当前以太网帧的收发功能是正常的，此处使用一个简单的发送 buf 的循环尝试对于以太网驱动的传输速率进行测试，
+    其实现上类似于前文进行 Linux 原生网卡驱动测试时的操作，直接在以太网帧 16-24 位中插入代表当前序号的纯数字
+    \footnote{由于测试脚本测试实现的部分为了方便进行调试，找到中断包，因此直接采用将代表序号的数字经由 snprintf 转换成 char 直接写入到以太网帧中
+    ，此处为了保证一致此处采用了同样的方法}。
+
+    $$\text{mbps} = \frac{\text{total\_bytes} \times 8.0}{\text{elapsed\_secs} \times 1,000,000.0}$$
+
+    根据测试记录（见附录表 2-2），其中以太网帧大小与以太网帧传输速率之间同样存在对数关系（如图\ref{tests::ArceOS网卡驱动传输率与以太网帧大小}所示）。
 
     \begin{tikzpicture}
         \centering
@@ -275,10 +304,16 @@
 
         \end{axis}
     \end{tikzpicture}
-    \captionof{figure}{树莓派Linux驱动传输率与以太网帧大小}    \label{test::Linux网卡驱动传输率与以太网帧大小}
+    \captionof{figure}{树莓派ArceOS驱动传输率与以太网帧大小}    \label{tests::ArceOS网卡驱动传输率与以太网帧大小}
 
-
-        \begin{tikzpicture}
+    经由二者横向简单对比，ArceOS 驱动在同等以太网帧大小情况下相较于 Linux 原生网卡驱动而言传输速率提升了不少（见 \ref{tests::ArceOSLinux传输速率对比图}），
+    但由于 ArceOS 网卡驱动实际上不对发包过程进行任何形式的保证，因此其丢包率较 Linux 原生网卡驱动显著提高了不少。
+    \footnote{但是由于数据链路层实际上不保证一定能发包成功，重传等工作实际上由以太网协议栈完成，因此相对来说影响面不大。}
+    同时，在以太网帧相对较大的时候，发包端的成功包数量计算不正确，怀疑存在没有被处理的发包报错信息导致该包没有实际被发送，
+    而是在 can\_transmit 层面判定当前缓冲区能否接受新的包时返回，但返回结果不正确导致正常发包与溢出并没有被明确区分开来，最终导致发包端发包结果记录显著高于
+    收包端收到的数据包数量（见附录表 2-2 \ref{tests::ArceOS驱动传输速率测试} ）
+    
+    \begin{tikzpicture}
         \centering
         \begin{axis}[
             xlabel={以太网帧大小}, ylabel={传输速率},
@@ -322,96 +357,7 @@
 
         \end{axis}
     \end{tikzpicture}
-
-    基于前面的测试，说明当前以太网帧的收发功能是正常的，此处使用一个简单的发送 buf
-    的循环尝试对于以太网驱动的传输速率进行测试。
-
-    从目前来看，在此次测试中有且存在两个变量， 一个是以太网帧的长度，另一个是每次发送之间的间隔。
-    在十秒钟内测试以太网驱动的最大每秒兆比特，并且根据其与 BCM54213PE PHY 芯片的
-    理论最高每秒兆比特进行对比，来说明以太网驱动的实现效果。
-
-    其中采用以太网帧大小作为其中的一个参数的主要原因在于需要对以太网驱动在帧间的消耗时间
-    进行评估，而发送时间间隔则是为了解决由于以太网帧在短时间内急剧增加，新增速率低于
-    消耗速率导致的溢出问题\footnote{在本驱动中尚没有考虑到这个问题的解决}。
-    具体测试记录见附表（TODO：将最终测试表插入到附录）。
-
-    $$\text{mbps} = \frac{\text{total\_bytes} \times 8.0}{\text{elapsed\_secs} \times 1,000,000.0}$$
-
-    根据测试记录（见附录分析，其中以太网帧大小与以太网帧传输速率之间存在对数关系（如图\ref{test::传输率与以太网帧大小}所示）
-    对数关系在以太网帧长度为 375 字节时达到最高点 94.3 MBps，与 BCM54213PE 千兆网卡的理论最大
-    传输速率 125MBps 相差不大。但在长度超过 375 字节之后，以太网帧长度再继续增加会产生未定义行为，
-    该行为具体表现为上位机 wireshark 只能按照规定长度抓到头几个包，后面的包没有被发送到网络中。
-    同时，计算得出的每秒兆比特也远远超过了 BCM54213PE 的理论最大传输率，
-    如以 512 字节的以太网帧，间隔 10500 纳秒以下，
-    计算结果为 149.21MBps，远远超过了千兆网卡的理论最大传输率 125MBps。
-
-    \begin{tikzpicture}
-        \centering
-        \begin{axis}[
-            xlabel={以太网帧大小}, ylabel={传输速率},
-            xmin=0,
-            width=0.8\textwidth,
-            legend pos=north east,
-            grid=both
-        ]
-        
-        \addplot[only marks
-        , mark=*
-        , blue
-        ] table [x=EthPackSize, y=AvgBandwidth, col sep=comma] {./imgs/测试记录-传输率与以太网帧.csv};
-        \addlegendentry{测试数据}
-        
-        % 添加趋势线 A + B * Exp(c * X)
-        \addplot[thick, green, domain=64:1000] {94.66701212555364 - 43.26235037169133 * exp(-0.010715300001686431 * x)};
-        \addlegendentry{指数趋势线}
-
-        % \addplot[dashed, black, thick] coordinates {(64, -10) (64, 100)}; % 调整 y 范围以适应图表
-        % \node at (axis cs:64, 100) [anchor=north] {64};
-        
-        \end{axis}
-    \end{tikzpicture}
-    \captionof{figure}{传输率与以太网帧大小}    \label{test::传输率与以太网帧大小}
-
-    % \begin{figure}[ht]
-    %     \centering
-    %     \includegraphics[width=\textwidth]{./imgs/测试-传输率与以太网帧大小.png}
-    %     \caption{传输率与以太网帧大小}    \label{test::传输率与以太网帧大小}
-    % \end{figure}   
-
-    根据这样的测试结果，我提出了一个简单的设想，即产生这种现象的原因在于以太网驱动没能及时
-    将收到的包传输出去，导致后面的包实际上并没有执行发送行为，而是在资源复用的时候被阻挡自动返回了。
-    因此，引入了传输延迟作为参数的一部分以方便对于最大传输率进行测试。
-
-    该参数虽然会导致同等情况下传输速率下降（如图\ref{test::传输率与发送延迟}所示）
-    ，但是他的引入可以使原先无法正常发送的以太网帧长度正常发送，如 376 字节的以太网帧在没有引入
-    传输延迟的时候是没有办法正常完成发送的，但是引入不到 150 纳秒的延时就可以使之正常运行，同时还提升了传输速率到 94 MBps，从某种程度上
-    来说可以提升网络传输效率。
-
-    \begin{tikzpicture}
-        \centering
-        \begin{axis}[
-            xlabel={发送延迟}, ylabel={传输速率},
-            xmin=0,ymax=100,
-            width=0.8\textwidth,
-            legend pos=north east,
-            grid=both
-        ]
-        
-        \addplot[only marks
-        , mark=*
-        , blue
-        ] table [x=Delay, y=Bandwidth with 128 EthPackSize, col sep=comma] {./imgs/测试记录-传输率与传输延迟.csv};
-        \addlegendentry{测试数据}
-        
-        % 添加趋势线 A + B * Exp(c * X)
-        % \addplot[thick, green, domain=0:1000000] {660066.98 * x^-0.96};
-        \addplot[thick, green, domain=10000:1000000] {839028.750214695 * x^-0.983848891456114};
-        % \addplot[thick, green, domain=0:1000000] {7.2132943561133525 + 130.53328368716328 * exp(-0.000052669151121911975 * x)};
-        \addlegendentry{指数趋势线}
-
-        \end{axis}
-    \end{tikzpicture}
-    \captionof{figure}{传输率与发送延迟}    \label{test::传输率与发送延迟}
+    \captionof{figure}{ArceOS-Linux驱动传输速率对比图}    \label{tests::ArceOSLinux传输速率对比图}
 
     \subsection{网卡协议栈集成测试}
 
@@ -462,18 +408,78 @@
     \end{figure}   
 
     \subsubsection{传输速率测试}
+    
+    在进行 UDP 层面传输速率测试的时候，在物理层面上采用类似前章节中对以太网帧进行测试时的连接结构。
+    同时，软件层面上额外在上位机 10.0.2.16 中运行打开特定端口的程序避免出现报错返回包，直接通过 wireshark 对于收到的数据包
+    数量进行记录（测试记录见附录表 2-3 \ref{tests::ArceOS-UDP传输速率测试}）。
+    
+    其中采用的数据传输速率计算方法如下，其中 total\_bytes = UDP数据包数据部分长度 * 收发包数量，将收发包结果与前文中以太网帧
+    层面的测试结果进行对比（如图 \ref{tests::ArceOSUDPETH对比图} 所示），可以明显发现 以太网帧传输速率 与 UDP帧传输速率存在较大差距，
+    可以明显发现二者之间存在较大差距。
 
-    尚未完成，目前仅测试 120\_000 纳秒传输延时情况下传输速率
-    最大能达到 53.64 MBps。
+    根据初步的分析可能有两种原因导致这样的结果，由于 axnet, BCM54213PE 驱动兼容层的实现不正确损失了性能，或者是在 axnet 基于
+    smoltcp 实现的网络协议栈中由于实现或者重复发包导致了性能损失。
+    
+    $$\text{mbps} = \frac{\text{total\_bytes} \times 8.0}{\text{elapsed\_secs} \times 1,000,000.0}$$
 
-    \subsection{集成测试}
+    \begin{tikzpicture}
+        \centering
+        \begin{axis}[
+            xlabel={UDP 数据位长度}, ylabel={传输速率},
+            xmin=0,
+            width=0.8\textwidth,
+            legend pos=north west,
+            grid=both
+        ]
+        
+        \addplot[name path=linux, thick, mark=*, orange] coordinates {
+            (60, 189.773072)
+            (128, 365.4372917)
+            (256, 685.4498305)
+            (384, 937.4238723)
+            (512, 950.7467263)
+            (768, 966.6822143)
+            (1024, 973.7869313)
+            (1280, 974.960128)
+            (1408, 975.087309)
+            (1500, 979.688400)
+        };
+        \addlegendentry{Linux 驱动}
+        
+        \addplot[name path=arceos, thick, mark=*, blue] coordinates {
+            (128, 7.163255467)
+            (256, 11.7116928)
+            (384, 19.4936832)
+            (512, 28.20819627)
+            (640, 35.10186667)
+            (768, 37.184256)
+            (896, 46.4930816)
+            (1024, 54.84489387)
+            (1280, 65.50016)
+            (1408, 72.410624)
+            (1500, 0)
+        };
+        \addlegendentry{UDP 传输速率}
 
-    尚未完成
+        \addplot fill between[
+            of = linux and arceos,
+            soft clip={domain=0:1500},
+            every even segment/.style  = {gray,opacity=.4}
+        ];
 
-    \subsubsection{指纹打卡及信息上传}
+        \end{axis}
+    \end{tikzpicture}
+    \captionof{figure}{ArceOS-UDP Eth对比图} \label{tests::ArceOSUDPETH对比图}
+    
 
-    尚未完成
+    % \subsection{集成测试}
 
-    \subsubsection{指纹同步}
+    % 尚未完成
 
-    尚未完成
+    % \subsubsection{指纹打卡及信息上传}
+
+    % 尚未完成
+
+    % \subsubsection{指纹同步}
+
+    % 尚未完成
