@@ -97,6 +97,103 @@
     本测试主要目的在于通过测试实现的以太网驱动是否能够实现以太网帧的收发，
     以及发送带宽说明以太网驱动实现的效果。
 
+    本章节的主要呈现流程如下：首先，先通过两台通用 PC 机对于测试与接收程序的效果进行分析，
+    然后将对应接收脚本转移到 树莓派 Linux 环境下进行本地编译收发包测试，
+    虽然固然存在 C，Rust 所导致的差异，但是由于 C 语言标准库尚未提供对于以太网帧的直接收发功能
+    因此没有办法在以太网帧层面进行 Rust 下的对比。
+
+    \subsubsection{测试脚本测试}
+
+    按照一开始的测试计划，应该采用两台电脑进行测试，一台电脑通过 WSL(windows subsystem of linux) 
+    运行 linux 测试发包脚本，另外一台笔记本通过 RJ45转USB模块\footnote{或者说叫做usb网卡}
+    经由双绞线与前者进行连接。
+
+    但是按照这种操作流程进行测试的时候，实际上并没有办法实现以太网帧的收发，
+    经过分析之后发现产生这种问题的主要原因的是 WSL 与 宿主机 之间的网络连接方式是通过
+    类似于 NAT 的方式进行连接的，在这种情况下，WSL 与 宿主机之间存在一个子网，因此
+    在 WSL 中在以太网帧层面实现的收发只能在，并不能在宿主机上获得转发，因此
+    另外一台 linux PC 没有办法收到对应以太网帧。
+    \footnote{IP层以上的包会自动被转发，但以太网帧不会}
+
+    最终，采用了两台运行 linux 操作系统的电脑进行此测试（其中一台采用 nixos live，一台是 nixos）。
+    \footnote{由于其中一台仍通过 RJ45转USB模块 实现网络收发功能同时配有百兆网卡，因此本次测试中的最高传输速率仅为100mbps}
+    二者均在完全关闭防火墙，配置对应以太网卡的 ip 地址，并实现相互 ping 之后展开测试。
+    发包侧（如附录代码段 \ref{code::eth-send}）在十秒内持续发送以太网帧，并且在以太网帧的第 16 位开始的八个字节添加代表当前以太网帧序号的八个字节 (unsigned long long)数据。
+    收包侧（如附录代码段 \ref{code::eth-recv}）按照对应收包顺序与检测出的序号综合进行判断在传输过程中是否存在丢包，乱序的情况。
+
+    其中初步测试情况说明可能存在三种情况：
+
+    \begin{enumerate}
+        \item 收发端收发包数量一致当前测试完整完成。
+        \item 收发端数量不一致可能说明在收发的过程中存在由于溢出或其他原因导致的丢包情况
+        \item 收发端数量一致，但是存在丢包，可能说明 C 程序调用裸套接字实现以太网帧的发送过程中，
+        会自动调用对应的重发功能，从某种程度上可以证明传输的质量。
+    \end{enumerate}
+
+    具体测试结果见下\ref{tests::测试脚本测试}表，在以太网帧百兆层面不存在丢包的情况，
+    并且可以较好的实现前面所需求的测试结果。
+
+    \begin{table}[ht]
+    \centering
+    \label{tests::测试脚本测试}
+    \caption{测试脚本测试表}
+    \csvautobooktabular{./imgs/测试记录-测试脚本测试.csv}
+    \end{table}
+
+    \subsubsection{树莓派网络传输速率测试}
+
+    本测试主要想要实现的效果在于测试出在树莓派直接采用 Linux 镜像原装的网卡驱动所能实现的传输效率，以方便与后面
+    我们通过 Rust 在 ArceOS 裸机上实现的网卡驱动（以太网帧）测试出的收发效率进行对比。
+
+    具体操作流程基本上与前章节保持一致，除了其中一台百兆网卡的测试PC被更换成为了树莓派，
+    二者直接通过双绞线进行连接。
+    
+    其中测试出以太网帧与传输速率直接的关系如下图 \ref{tests::Linux网卡驱动传输率与以太网帧大小} 所见，测试记录见附录表 2-1。
+    根据图所知，以太网帧大小与树莓派传输速率之间存在指数关系，
+    并且以太网帧越大，在同等时间内的以太网传输速率越大，在以太网帧层面网络传输速率最大能达到983.mbps，
+    接近树莓派千兆网卡的理论最大传输速率。
+
+    \begin{tikzpicture}
+        \centering
+        \begin{axis}[
+            xlabel={以太网帧大小}, ylabel={传输速率},
+            xmin=0,
+            width=0.8\textwidth,
+            legend pos=south east,
+            grid=both
+        ]
+        
+        \addplot[thick, mark=*, blue] coordinates {
+            (64, 112.3833333)
+            (128, 233.0333333)
+            (256, 456.5257143)
+            (512, 739.01)
+            (1024, 898.616)
+            (1280, 943.565)
+            (1408, 949.85)
+            (1500, 946.8366667)
+        };
+        \addlegendentry{发送速率}
+        
+        \addplot[thick, mark=*, red] coordinates {
+            (64, 112.3833333)
+            (128, 233.0333333)
+            (256, 445.5085714)
+            (512, 734.5766667)
+            (1024, 889.338)
+            (1280, 938.1825)
+            (1408, 949.85)
+            (1500, 938.5266667)
+        };
+        \addlegendentry{接受速率}
+
+        \end{axis}
+    \end{tikzpicture}
+    \captionof{figure}{树莓派Linux驱动传输率与以太网帧大小}    \label{test::Linux网卡驱动传输率与以太网帧大小}
+
+    \subsection{网卡驱动测试}
+
+    本测试主要目的在于测试在 ArceOS 下的以太网卡驱动传输速率，并且最终与树莓派网络传输速率进行对比，评价以太网网卡驱动的实现效果。
     由于后面在将以太网卡驱动与 ArceOS 网络协议栈进行嵌合的时候对于以太网卡驱动进行了破坏性修改
     \footnote{BCM54213PE驱动中调用ArceOS函数是通过PhantomData间接调用traits实现来完成的}。
     因此，本次测试由完成了网络驱动测试的 \href{https://bitbucket.org/jackyliu16/arceos/commits/92e9b6abcdf180359381088552688c0fcbc83bf2}{commit} 
@@ -137,6 +234,94 @@
     \end{figure}
 
     \subsubsection{传输速率测试}
+
+    \begin{tikzpicture}
+        \centering
+        \begin{axis}[
+            xlabel={以太网帧大小}, ylabel={传输速率},
+            xmin=0,
+            width=0.8\textwidth,
+            legend pos=south east,
+            grid=both
+        ]
+        
+        \addplot[thick, mark=*, blue] coordinates {
+            (60, 195.29)
+            (128, 409.73)
+            (256, 695.9225)
+            (384, 941.24)
+            (512, 955.32)
+            (768, 969.84)
+            (1024, 977.3)
+            (1280, 981.84)
+            (1408, 983.52)
+            (1500, 984.55)
+        };
+        \addlegendentry{发送速率}
+        
+        \addplot[thick, mark=*, red] coordinates {
+            (60, 189.773072)
+            (128, 365.4372917)
+            (256, 685.4498305)
+            (384, 937.4238723)
+            (512, 950.7467263)
+            (768, 966.6822143)
+            (1024, 973.7869313)
+            (1280, 974.960128)
+            (1408, 975.087309)
+            (1500, 979.688400)
+        };
+        \addlegendentry{接受速率}
+
+        \end{axis}
+    \end{tikzpicture}
+    \captionof{figure}{树莓派Linux驱动传输率与以太网帧大小}    \label{test::Linux网卡驱动传输率与以太网帧大小}
+
+
+        \begin{tikzpicture}
+        \centering
+        \begin{axis}[
+            xlabel={以太网帧大小}, ylabel={传输速率},
+            xmin=0,
+            width=0.8\textwidth,
+            legend pos=south east,
+            grid=both
+        ]
+        
+        \addplot[name path=linux, thick, mark=*, orange] coordinates {
+            (64, 112.3833333)
+            (128, 233.0333333)
+            (256, 445.5085714)
+            (512, 734.5766667)
+            (1024, 889.338)
+            (1280, 938.1825)
+            (1408, 949.85)
+            (1500, 938.5266667)
+        };
+        \addlegendentry{Linux 驱动}
+        
+        \addplot[name path=arceos, thick, mark=*, blue] coordinates {
+            (60, 189.773072)
+            (128, 365.4372917)
+            (256, 685.4498305)
+            (384, 937.4238723)
+            (512, 950.7467263)
+            (768, 966.6822143)
+            (1024, 973.7869313)
+            (1280, 974.960128)
+            (1408, 975.087309)
+            (1500, 979.688400)
+        };
+        \addlegendentry{ArceOS 驱动}
+
+        \addplot fill between[
+            of = linux and arceos,
+            soft clip={domain=0:1500},
+            every even segment/.style  = {gray,opacity=.4}
+        ];
+
+        \end{axis}
+    \end{tikzpicture}
 
     基于前面的测试，说明当前以太网帧的收发功能是正常的，此处使用一个简单的发送 buf
     的循环尝试对于以太网驱动的传输速率进行测试。

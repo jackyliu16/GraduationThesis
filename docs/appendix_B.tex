@@ -31,22 +31,40 @@
 
 \begin{table}[ht]
   \centering
-  \caption{帧大小与传输速率测试记录表}
-  \csvautobooktabular{./imgs/测试记录-传输率与以太网帧.csv}
+  \caption{Linux 驱动传输速率测试}
+  \label{tests::Linux驱动传输速率测试}
+  \begin{adjustbox}{width=1\textwidth}
+    \csvautobooktabular{./imgs/测试记录-测试脚本Linux测试.csv}
+  \end{adjustbox}
 \end{table}
 
 \begin{table}[ht]
   \centering
-  \caption{帧大小与传输速率测试表}
-  \begin{tabular}{llll}
-    \toprule
-    Delay & Bandwidth \& 128 Size & Bandwidth \& 376 Size & Bandwidth \& 512 Size \\
-    \midrule
-    % 读取 CSV 文件
-    \csvreader[
-      late after line=\\, % 每行结束
-      head to column names
-    ]{./imgs/测试记录-传输率与传输延迟.csv}{}{\csvcoli & \csvcolii & \csvcoliii & \csvcoliv}
-    \bottomrule
-  \end{tabular}
+  \label{tests::ArceOS驱动传输速率测试}
+  \caption{ArceOS 传输速率测试}
+  \begin{adjustbox}{width=1\textwidth}
+    \csvautobooktabular{./imgs/测试记录-测试脚本ArceOS测试.csv}
+  \end{adjustbox}
 \end{table}
+
+% \begin{table}[ht]
+%   \centering
+%   \caption{帧大小与传输速率测试记录表}
+%   \csvautobooktabular{./imgs/测试记录-传输率与以太网帧.csv}
+% \end{table}
+
+% \begin{table}[ht]
+%   \centering
+%   \caption{帧大小与传输速率测试表}
+%   \begin{tabular}{llll}
+%     \toprule
+%     Delay & Bandwidth \& 128 Size & Bandwidth \& 376 Size & Bandwidth \& 512 Size \\
+%     \midrule
+%     % 读取 CSV 文件
+%     \csvreader[
+%       late after line=\\, % 每行结束
+%       head to column names
+%     ]{./imgs/测试记录-传输率与传输延迟.csv}{}{\csvcoli & \csvcolii & \csvcoliii & \csvcoliv}
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
