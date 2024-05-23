@@ -532,25 +532,23 @@
     在测试的时候，在上位机中打开 server.py 避免 5555 端口未被监听的报错，在树莓派商店，串口载入对应镜像完成之后，运行 mylib.py 中的同步测试命令，该命令会将
     当前数据库中保存的指纹特征数据下发到树莓派从属指纹识别模块中。
 
+    \noindent
     \begin{figure}[ht]
-        \centering
-        \begin{subfigure}
-            \centering
+        \begin{minipage}[t]{0.48\linewidth}
             \includegraphics[width=\textwidth]{./imgs/清空指纹模板.png}
-        \end{subfigure}
-        \caption{清空指纹模板} \label{tests::清空指纹模板}
-        \hfill
-        \begin{subfigure}
-            \centering
+            \caption{清空指纹模板} \label{tests::清空指纹模板}
+        \end{minipage}
+        % \quad
+        \begin{minipage}[t]{0.48\linewidth}
             \includegraphics[width=\textwidth]{./imgs/注册指纹.png}
-        \end{subfigure}
-        \caption{指纹下载成功} \label{tests::指纹下载成功}
+            \caption{指纹下载成功} \label{tests::指纹下载成功}
+        \end{minipage}
     \end{figure}
 
     根据当前胶水层（数据链路层与ArceOS 上层网络协议栈嵌合层）实现情况，目前尚没有办法能较好的处理将 UDP 存放到缓冲区中的问题，因此在指纹同步测试部分采用了一个相对较为简易的解决办法，
     即通过给两端添加延时来实现 UDP 收发包双端的同步。
 
-    根据树莓派下位机中运行的嵌入式设备主循环 （见代码段 \ref{algorithm::fingerprint_network_comm}），在 local\_socket.recv\_from(\&mut buf) 从 ArceOS 上层网络协议栈中获取到第一个 UDP 包之后，
+    根据树莓派下位机中运行的嵌入式设备主循环 （见代码段 \ref{algorithm::fingerprint_network_comm}），通过 recv\_from 从 ArceOS 上层网络协议栈中获取到第一个 UDP 包之后，
     应当进入一个持续的接受状态
     \footnote{根据 FPM383C 通信协议，下发指纹特征信息时，需要先发送指纹特征信息下载包，向指纹识别模块说明下载情况，然后上位机需要连续向下位机中发送多个固定长度(128)的指纹特征信息包}，
     因此，在判定进入接收状态之后，主循环自动跳过指纹匹配\footnote{指纹下载过程不能被指纹匹配命令打断}后，继续接受并转发下一个 UDP 包，直到完成全部包的接受。
