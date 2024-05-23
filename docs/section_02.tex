@@ -119,6 +119,7 @@ FPM383F 是一款功耗低的光学指纹识别模块，采用半导体面阵传
             \If{\Call{Receive}{$socket, \& buf$} 正常返回 $(size, addr)$} \Comment{收到了网络包}
                 \If{收包结果与特定帧头匹配}
                     \State \Call{Write}{serial, \text{\&buf[..size]}} \Comment{将帧转发给从属指纹模块}
+                    \State \textbf{Continue} \Comment{如果进入收报状态则跳过当前指纹匹配环节}
                 \EndIf
                 \State $buf \gets [0; 1024]$ \Comment{重置缓冲区}
             \Else{打印错误信息}

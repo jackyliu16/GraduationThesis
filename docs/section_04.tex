@@ -159,6 +159,7 @@
 
     $$\text{mbps} = \frac{\text{total\_bytes} \times 8.0}{\text{elapsed\_secs} \times 1,000,000.0}$$
 
+    \begin{figure}[ht]
     \begin{tikzpicture}
         \centering
         \begin{axis}[
@@ -195,7 +196,8 @@
 
         \end{axis}
     \end{tikzpicture}
-    \captionof{figure}{树莓派Linux驱动传输率与以太网帧大小关系图}    \label{tests::Linux网卡驱动传输率与以太网帧大小}
+    \caption{树莓派Linux驱动传输率与以太网帧大小关系图}    \label{tests::Linux网卡驱动传输率与以太网帧大小}
+    \end{figure}
 
     % TODO: 在前期测试中是可以正常发现对应丢包情况的发生的，但是不知道为什么后面无法重现这个问题，暂且删除这个部分的说明
 
@@ -264,6 +266,7 @@
 
     根据测试记录（见附录表 2-2），其中以太网帧大小与以太网帧传输速率之间同样存在对数关系（如图\ref{tests::ArceOS网卡驱动传输率与以太网帧大小}所示）。
 
+    \begin{figure}[H]
     \begin{tikzpicture}
         \centering
         \begin{axis}[
@@ -304,7 +307,8 @@
 
         \end{axis}
     \end{tikzpicture}
-    \captionof{figure}{树莓派ArceOS驱动传输率与以太网帧大小}    \label{tests::ArceOS网卡驱动传输率与以太网帧大小}
+    \caption{树莓派ArceOS驱动传输率与以太网帧大小}    \label{tests::ArceOS网卡驱动传输率与以太网帧大小}
+    \end{figure}
 
     经由二者横向简单对比，ArceOS 驱动在同等以太网帧大小情况下相较于 Linux 原生网卡驱动而言传输速率提升了不少（见 \ref{tests::ArceOSLinux传输速率对比图}），
     但由于 ArceOS 网卡驱动实际上不对发包过程进行任何形式的保证，因此其丢包率较 Linux 原生网卡驱动显著提高了不少。
@@ -313,6 +317,7 @@
     而是在 can\_transmit 层面判定当前缓冲区能否接受新的包时返回，但返回结果不正确导致正常发包与溢出并没有被明确区分开来，最终导致发包端发包结果记录显著高于
     收包端收到的数据包数量（见附录表 2-2 \ref{tests::ArceOS驱动传输速率测试} ）
     
+    \begin{figure}[H]
     \begin{tikzpicture}
         \centering
         \begin{axis}[
@@ -357,7 +362,8 @@
 
         \end{axis}
     \end{tikzpicture}
-    \captionof{figure}{ArceOS-Linux驱动传输速率对比图}    \label{tests::ArceOSLinux传输速率对比图}
+    \caption{ArceOS-Linux驱动传输速率对比图}    \label{tests::ArceOSLinux传输速率对比图}
+    \end{figure}
 
     \subsection{网卡协议栈集成测试}
 
@@ -422,6 +428,7 @@
     
     $$\text{mbps} = \frac{\text{total\_bytes} \times 8.0}{\text{elapsed\_secs} \times 1,000,000.0}$$
 
+    \begin{figure}[H]
     \begin{tikzpicture}
         \centering
         \begin{axis}[
@@ -469,17 +476,96 @@
 
         \end{axis}
     \end{tikzpicture}
-    \captionof{figure}{ArceOS-UDP Eth对比图} \label{tests::ArceOSUDPETH对比图}
+    \caption{ArceOS-UDP Eth对比图} \label{tests::ArceOSUDPETH对比图}
+    \end{figure}
+    
+    \subsection{集成测试}
+
+    集成测试部分主要测试了整个指纹考勤系统的集成功能，根据前文所提到的总体设计图，分为两个部分进行测试（如图 \ref{集成测试示意图} 所示）
+    其中黄色部分被涵盖在指纹打卡及信息上传部分，红色部分被涵盖在指纹同步部分。
+
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[scale=0.6]{./imgs/总体设计图-plus.png}
+        \caption{集成测试示意图} \label{集成测试示意图}
+    \end{figure}
+
+    \subsubsection*{测试准备：}
+
+    按照前文中测试脚本测试时使用的外部网线连接方式（如下图 \ref{集成测试连接图} 所示），将树莓派与测试主机连接到一起。
+    在测试主机中运行 server.py 应用程序，该应用程序会打开对于当前主机 5555 端口的监听，并且自动分析在当前端口下的数据通信。
+
+
+    根据设定，该端口会自动分析应用程序发来的 UDP 包究竟是用于测试连通性的 TEST\_CONNECTION 还是下位机汇报某指纹 ID 实现打卡成功的 PUNCH\_RECEIVED 包，
+    根据其类型做出不同的处理，并且返回对应的信息。
+
+    \begin{figure}[ht]
+        \centering
+        \includegraphics{./imgs/集成测试连接图.jpg}
+        \caption{集成测试连接图} \label{集成测试连接图}
+    \end{figure}
+
+    \subsubsection{指纹打卡及信息上传}
+
+    根据设计要求，在一般情况下，树莓派中不断轮询指纹识别模块，在指纹识别模块收到正确匹配信号之后，提取对应 UART帧 中保存的指纹 ID 数据，将此数据写入到 PUNCH\_RECEIVED 的
+    ASCII 码中，直接通过 UDP 发送裸字节包到上位机中运行的 server.py 应用程序，在该应用程序中自动对 PUNCH\_RECEIVED 前缀进行识别，识别成功之后查询数据库，给该指纹 ID
+    所对应的用户添加打卡记录。
+
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[width=\textwidth]{./imgs/集成测试-打卡信息上传.png}
+        \caption{打卡信息上传示意图} \label{打卡信息上传示意图}
+    \end{figure}
+
+    如图 \ref{打卡信息上传示意图} 所示，左侧运行的 server.py 应用程序在对于当前网络下的 UDP 
+    传输进行监听的时候，收到了两种不同的数据包 TEST\_CONNECTION 和 PUNCH\_RECEIVED
+    当收到下位机打卡信息汇报之后，根据 FingerInfo 表查询指纹 ID 对应的用户名称，并将对应用户的打卡
+    信息写入到 signIn 数据库。如图 \ref{打卡信息上传示意图} 右侧所示，
+    在 signIn 数据库中以 CURRENT\_TIMESTAMP 的方式保存对应的打卡信息，
+    打卡时间以上位机当前时间戳对应的格林尼治时间进行显示（在进行测试的时候上位机位于东八区）。
+
+    \subsubsection{指纹同步}
+
+    指纹同步测试在 \href{https://bitbucket.org/jackyliu16/arceos/commits/4554a70c7b902b3fcae488e9507377aff42fedd9}{arceos-4554a70} 提交中展开，
+    其中使用的脚本在 \href{https://bitbucket.org/jackyliu16/attendance_system_backend/commits/921212f1f126da11868c32f7cba1502972fd6576}{backend-921212f}。
+    在测试开始前清空树莓派从属指纹识别模块中的指纹模板（如图 \ref{tests::清空指纹模板}）。
+    在测试的时候，在上位机中打开 server.py 避免 5555 端口未被监听的报错，在树莓派商店，串口载入对应镜像完成之后，运行 mylib.py 中的同步测试命令，该命令会将
+    当前数据库中保存的指纹特征数据下发到树莓派从属指纹识别模块中。
+
+    \begin{figure}[ht]
+        \centering
+        \begin{subfigure}
+            \centering
+            \includegraphics[width=\textwidth]{./imgs/清空指纹模板.png}
+        \end{subfigure}
+        \caption{清空指纹模板} \label{tests::清空指纹模板}
+        \hfill
+        \begin{subfigure}
+            \centering
+            \includegraphics[width=\textwidth]{./imgs/注册指纹.png}
+        \end{subfigure}
+        \caption{指纹下载成功} \label{tests::指纹下载成功}
+    \end{figure}
+
+    根据当前胶水层（数据链路层与ArceOS 上层网络协议栈嵌合层）实现情况，目前尚没有办法能较好的处理将 UDP 存放到缓冲区中的问题，因此在指纹同步测试部分采用了一个相对较为简易的解决办法，
+    即通过给两端添加延时来实现 UDP 收发包双端的同步。
+
+    根据树莓派下位机中运行的嵌入式设备主循环 （见代码段 \ref{algorithm::fingerprint_network_comm}），在 local\_socket.recv\_from(\&mut buf) 从 ArceOS 上层网络协议栈中获取到第一个 UDP 包之后，
+    应当进入一个持续的接受状态
+    \footnote{根据 FPM383C 通信协议，下发指纹特征信息时，需要先发送指纹特征信息下载包，向指纹识别模块说明下载情况，然后上位机需要连续向下位机中发送多个固定长度(128)的指纹特征信息包}，
+    因此，在判定进入接收状态之后，主循环自动跳过指纹匹配\footnote{指纹下载过程不能被指纹匹配命令打断}后，继续接受并转发下一个 UDP 包，直到完成全部包的接受。
+
+    在实际进行测试的时，发现现有串口传输驱动虽然可以实现简单的发送，解析与接受效果，但在面临连续发送较长字节时仍存在溢出问题。
+    具体表现在传输常见 LED 控制信号（长度 22 字节），或者指纹特征信息下载包（长度 23 字节）时可以正常发送，但是在传输指纹特征数据下载包（长度 148 字节）时会出现由于部分字节没有正确传输，
+    使指纹识别模块误认为传输还没有终止的死锁状态。
+    
+    交叉对比同一抽象类 SenderInterface 下的 SerialSender，UdpSocketSender 实现的效果及输出结果可以认为二者传输的数据是等价的，考虑到
+    在实现串口传输驱动的时候采用的是 FIFO 方式实现的对应操作，在实际发送数据的时候可能因没能及时清空缓冲区导致溢出丢失字节进而导致死锁，手动在每次发送字节时添加了 50\_0000 纳秒的延迟后
+    能正常传输较大字节数据。在包级别比对之后，发现在正常传输数据时，在树莓派端 recv\_from 处所接收到的包存在丢包情况。
+    但是在启用 socket blocking 模式下无法复现该情况，初步认为该情况可能与尚未完整实现的胶水层有关（RxToken，TxToken中牵涉到 recycle 的问题），同时由于目前尚未实现多线程，在主循环上使用阻塞收报
+    方式会导致死锁问题而无法避免使用 nonblocking socket。最终在 UDP 发包端每次发包间隔 0.092s，每次串口发送字节间隔 50\_0000 纳秒的情况下实现了最为基础的指纹同步功能。
+
+    最终，在 mylib 测试脚本中携带的指纹模板总数探测包返回当前存在一个指纹模板，同时将 FPM383C 指纹模板切换到 PC 机中，对应的指纹模板也能够正常被检出（如图 \ref{tests::指纹下载成功}）。
     
 
-    % \subsection{集成测试}
 
-    % 尚未完成
-
-    % \subsubsection{指纹打卡及信息上传}
-
-    % 尚未完成
-
-    % \subsubsection{指纹同步}
-
-    % 尚未完成
