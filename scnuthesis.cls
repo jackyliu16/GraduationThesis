@@ -198,7 +198,7 @@
 
   \clearpage
 
-  \chead{\zihao{5}\ziju{0.08}\fangsong{华南师范大学本科毕业论文}}
+  \chead{\zihao{5}\ziju{0.08}\fangsong{\hide{华南师范大学本科毕业论文}}}
   \renewcommand{\headrulewidth}{1.0pt}
   \pagenumbering{arabic}
   \setcounter{page}{1}
@@ -259,7 +259,7 @@
     \vspace{3cm}
 
     \centering
-    \zihao{-2}\ziju{0.5}\textbf{\songti{华南师范大学}}
+    \zihao{-2}\ziju{0.5}\textbf{\songti{\hide{华南师范大学}}}
   
     \zihao{-2}\ziju{0.5}\textbf{\songti{\zhtoday}}
   \end{titlepage}
@@ -274,8 +274,8 @@
 \RequirePackage{pgffor} % 加载pgffor包
 \RequirePackage{xstring} % 加载pgffor包
 \newif\ifhideflag
-\hideflagtrue % 设置为 true 将文本替换为 *
-% \hideflagfalse % 设置为 true 将文本替换为 *
+% \hideflagtrue % 设置为 true 将文本替换为 *
+\hideflagfalse % 设置为 true 将文本替换为 *
 
 % 定义一个新的命令，根据 \hideflag 的取值来决定是否隐藏文本
 % \newcommand{\hide}[1]{\ifhideflag \hidechars{#1} \else #1 \fi}
