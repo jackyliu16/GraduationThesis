@@ -269,6 +269,43 @@
   \setcounter{page}{1}
 }
 
+%%%%%%%%%%%%%%%%%%%%%% 送审支持 %%%%%%%%%%%%%%%%%%%%%%
+
+\RequirePackage{pgffor} % 加载pgffor包
+\RequirePackage{xstring} % 加载pgffor包
+\newif\ifhideflag
+\hideflagtrue % 设置为 true 将文本替换为 *
+% \hideflagfalse % 设置为 true 将文本替换为 *
+
+% 定义一个新的命令，根据 \hideflag 的取值来决定是否隐藏文本
+% \newcommand{\hide}[1]{\ifhideflag \hidechars{#1} \else #1 \fi}
+
+\newcommand{\hide}[1]{%
+    \ifhideflag%
+      \StrLen{#1}[\StringLength]%
+      \foreach \x in {1,...,\StringLength}{*}%
+    \else%
+        #1%
+    \fi%
+}
+% \newcommand{\hidechars}[1]{%
+%     \StrLen{#1}[\stringlength]
+%     \StrSubstitute[0]{#1}{\StrLeft{#1}{\stringlength}}{*******************}
+% }
+% \newcommand{\hide}[2]{%
+%     \ifhideflag
+%         \newcount\hidenum
+%         \hidenum = #2
+%         \loop
+%             *\advance\hidenum by -1
+%         \ifnum \hidenum>0
+%         \repeat
+%     \else
+%         #1
+%     \fi
+% }
+
+
 %%%%%%%%%%%%%%%%%%%%%% JavaScript语法高亮支持 %%%%%%%%%%%%%%%%%%%%%%
 
 \usepackage{color}
