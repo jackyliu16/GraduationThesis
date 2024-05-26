@@ -214,6 +214,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%% 封面 %%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage{datetime}
 
 \newcommand{\dunderline}[3][-6pt]{{
   \setbox0=\hbox{#3}
@@ -221,7 +222,7 @@
 }}
 
 \newcommand{\infobox}[2]{
-    \hspace{2.4cm}\songti\zihao{-2}\textbf{\selectfont{#1~\dunderline{1pt}{\makebox[8cm][c]{#2}}}}
+    \hspace{1cm}\songti\zihao{-2}\textbf{\selectfont{#1~\dunderline{1pt}{\makebox[10cm][c]{#2}}}}
 }
 
 
@@ -234,29 +235,33 @@
     \centering
     \includegraphics[width=\textwidth]{./imgs/south_china_normal_university_icon.jpg}
     \centering
-    \zihao{-0}\textbf{\songti{毕\hphantom{空}业\hphantom{空}论\hphantom{空}文}}
+    % \zihao{-0}\textbf{\songti{毕\hphantom{空}业\hphantom{空}论\hphantom{空}文}}
+    \zihao{-1}\textbf{本科毕业论文（设计）}
     \vspace{0.6cm}
   
-    \zihao{-2}\textbf{\heiti\thesisTitle}
+    % \zihao{-2}\textbf{\heiti\thesisTitle}
     \vspace{2.5cm}
   
     \flushleft
   
     \begin{spacing}{1.5}
+        \infobox{论文题目}{\thesisTitle}
+
+        \infobox{指导教师}{\yourMentor}
+
+        \infobox{学生姓名}{\yourName}
+
+        \infobox{学\hphantom{空白}号}{\studentID}
+
         \infobox{学\hphantom{空白}院}{\yourDept}
   
         \infobox{专\hphantom{空白}业}{\yourMajor}
-  
-        \infobox{班\hphantom{空白}级}{\yourClass}
-  
-        \infobox{姓\hphantom{空白}名}{\yourName}
-       
-        \infobox{学\hphantom{空白}号}{\studentID}
 
-        \infobox{指导教师}{\yourMentor}
+        %\infobox{毕业时间}{\THEYEAR 年 7 月}
+    	\infobox{毕业时间}{ 2024 年 7 月}
     \end{spacing}
   
-    \vspace{3cm}
+    \vspace{4cm}
 
     \centering
     \zihao{-2}\ziju{0.5}\textbf{\songti{\hide{华南师范大学}}}

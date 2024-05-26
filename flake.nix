@@ -23,7 +23,7 @@
         # NOTE: add some latex package you want 
         inherit (pkgs.texlive) xecjk xetex bibtex texcount
         algpseudocodex algorithm2e algorithmicx
-        algorithms fifo-stack varwidth tabto-generic tabto-ltx totcount tikzmark
+        algorithms fifo-stack varwidth tabto-generic tabto-ltx totcount tikzmark fmtcount
         # koma-script trimspaces transparent catchfile
         ; 
       };
