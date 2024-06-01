@@ -279,8 +279,8 @@
 \RequirePackage{pgffor} % 加载pgffor包
 \RequirePackage{xstring} % 加载pgffor包
 \newif\ifhideflag
-% \hideflagtrue % 设置为 true 将文本替换为 *
-\hideflagfalse % 设置为 true 将文本替换为 *
+\hideflagtrue % 设置为 true 将文本替换为 *
+% \hideflagfalse % 设置为 true 将文本替换为 *
 
 % 定义一个新的命令，根据 \hideflag 的取值来决定是否隐藏文本
 % \newcommand{\hide}[1]{\ifhideflag \hidechars{#1} \else #1 \fi}
